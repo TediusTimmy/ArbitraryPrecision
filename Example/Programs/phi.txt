@@ -1,0 +1,98 @@
+{ for fib } var arg, res, a, b, c.
+var phi, digits, one.
+
+ (*
+   Computes phi, the golden ratio: (1 + sqrt(5)) / 2.
+
+   Uses the relationship with the Fibbonacci numbers:
+      phi = fib(n + 1) / fib(n).
+
+   fib returns this sequence:
+      0, 1, 1, 2, 3, 5, 8, 13, ...
+
+   This relationship is actually incredibly accurate:
+      If fib(n) is an m digit number,
+      then phi is good to nearly 2 * m digits.
+ *)
+
+begin
+
+   prints "Digits of phi to calculate: ";.
+   read digits.
+
+   digits := digits + 2 { for accuracy }.
+   one := 10 ^ digits.
+
+   arg := digits * 5 { This number is magical. }.
+    { Actually, it is approximately 1 / log (phi), where log is base 10. }
+
+   call fib.
+
+   if res == a
+      phi := res * one / c
+   else if res == b
+      phi := res * one / a
+   else if res == c
+      phi := res * one / b.
+
+   one := one / 100.
+   arg := phi % 100.
+   phi := phi / 100.
+
+   if arg > 50
+      phi = phi + 1.
+
+   print phi / one;.
+   prints ".";.
+   print phi % one.
+
+   return.
+
+: fib
+
+   a <- 0.
+   b <- 1.
+
+   if arg == 0
+      begin
+         res := a.
+         return.
+      end.
+   if arg == 1
+      begin
+         res := b.
+         return.
+      end.
+
+   arg := arg - 1.
+
+   while 1
+      begin
+         c := a + b.
+
+         arg := arg - 1.
+         if not arg
+            begin
+               res := c.
+               return.
+            end.
+
+         a := b + c.
+
+         arg := arg - 1.
+         if not arg
+            begin
+               res := a.
+               return.
+            end.
+
+         b := c + a.
+
+         arg := arg - 1.
+         if not arg
+            begin
+               res := b.
+               return.
+            end.
+      end.
+end.

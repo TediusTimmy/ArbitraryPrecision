@@ -1,0 +1,1 @@
+g++ -s -Wall -Wextra -Wconversion -O6 -o AltCalc main.cpp Stack.cpp Calculator.cpp ../Float/DecFloat.cpp ../Float/Float.cpp ../Float/Fixed.cpp ../Float/Constants.cpp ../Float/Functions.cpp ../Integer.cpp ../BitField.cpp

@@ -1,0 +1,52 @@
+ (*
+   A sieve of Erosthenes to compute lots of prime numbers.
+   This actually helped me debug the FOR loop quite a bit.
+
+   This has been written for speed.
+      A sieve should be faster than the brute-force approach,
+      but this implementation gets much slower than the brute-force
+      version as top gets larger.
+ *)
+var sieve, top, cur, limit, temp, bit.
+
+begin
+   prints "Maximum value to list primes to: ";.
+   read top.
+   sieve = 3.
+   limit = sqrt(top).
+   print 2.
+
+   bit = 1 << 2.
+   for temp = 4 to top step 2
+      begin
+         bit = 1 << temp.
+         sieve = sieve | bit.
+      end.
+
+   for cur = 3 to limit step 2
+      begin
+         bit = 1 << cur.
+         if not (sieve & bit)
+            begin
+               print cur.
+               for temp = cur * cur to top step cur
+                  begin
+                     bit = 1 << temp.
+                     sieve = sieve | bit.
+                  end.
+            end.
+      end.
+
+   if not (limit & 1)
+      limit = limit | 1
+   else
+      limit = limit + 2.
+
+   for cur = limit to top step 2
+      begin
+         bit = 1 << cur.
+         if not (sieve & bit)
+            print cur.
+      end.
+
+end.

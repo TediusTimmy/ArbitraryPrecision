@@ -1,0 +1,38 @@
+ (*
+   This is just the Taylor series for e.
+   It uses a scaled integer representation to calculate e
+   to an arbitrary number of decimal places.
+ *)
+
+var one, iterator, sum, product, quotient, digits.
+
+begin
+   prints "Digits of 'e' to calculate: ";.
+   read digits.
+
+   digits := digits + 7 { for accuracy }.
+
+   one = 10 ^ digits.
+   sum <- one.
+   iterator = 1.
+   product = 1.
+   quotient := one / product.
+   while quotient
+      begin
+         sum = sum + quotient.
+         iterator = iterator + 1.
+         product = product * iterator.
+         quotient = one / product.
+      end.
+
+   product = 10 ^ 7.
+   one = one / product.
+   quotient = sum % product.
+   sum = sum / product.
+   if quotient > product / 2
+      sum = sum + 1.
+
+   print sum / one;.
+   prints ".";.
+   print sum % one.
+end.

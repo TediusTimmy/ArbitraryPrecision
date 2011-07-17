@@ -1,0 +1,33 @@
+var x, y, z.
+
+ (*
+   A simple predicate program that decides if a number is prime or not.
+ *)
+
+begin
+   prints "Number: ";.
+   read x.
+   if x == 2
+      prints "Prime"
+   else if x == 3
+      prints "Prime"
+   else if x & 1 == 0
+      prints "Not Prime"
+   else
+      begin
+         y := 3.
+         z = sqrt(x).
+         while y <= z
+            begin
+               if x % y == 0
+                  begin
+                     prints "Not Prime".
+                     y := x.
+                  end
+               else
+                  y := y + 2.
+            end.
+         if x <> y
+            prints "Prime".
+      end.
+end.

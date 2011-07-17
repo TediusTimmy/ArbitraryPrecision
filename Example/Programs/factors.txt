@@ -1,0 +1,36 @@
+var base, input, test, multiplicity.
+
+ (*
+   Factorizes a number. As this doesn't choose only prime numbers to test,
+   it takes quite a while.
+ *)
+
+begin
+   prints "Input base: ";.
+   read base.
+   prints "Number to factorize: ";.
+   read input, base.
+   test := 2.
+   while input != 1
+      begin
+         if input % test == 0
+            begin
+               multiplicity := 1.
+               input := input / test.
+               while input % test == 0
+                  begin
+                     multiplicity := multiplicity + 1.
+                     input := input / test.
+                  end.
+               print test;.
+               prints "^";.
+               print multiplicity;.
+               prints "	";.
+               print input.
+            end.
+         if test == 2
+            test := test + 1
+         else
+            test := test + 2.
+      end.
+end.

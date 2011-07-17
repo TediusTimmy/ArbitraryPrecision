@@ -1,0 +1,93 @@
+<program>	=>	{var <identifier> {, <identifier>}* .}*
+				<statement> .
+
+<statement>	=>	: <identifier> <statement>
+			<variable> <assign> <boolean>
+			begin { <statement> . }+ end
+			if <boolean> <statement> [else <statement> ]
+			while <boolean> <statement>
+			until <boolean> <statement>
+			repeat <statement> [(while | until) <boolean>]
+			for <variable> <assign> <boolean> (to | downto)
+				<boolean> [step <boolean>] <statement>
+			goto <identifier>
+			call <identifier>
+			return
+			read <variable> [, <boolean>]
+			reads <variable>
+			print <boolean> [, <boolean>] [;]
+			prints <boolean> [;]
+			printf <boolean> , <boolean>
+				[, <boolean> [, <boolean>]] [;]
+
+<assign>	=>	"=" | ":=" | "<-"
+
+<variable>	=>	<identifier>
+
+<boolean>	=>	<clause> {("||" | or) <clause>}*
+
+<clause>	=>	<predicate> {("&&" | and) <predicate>}*
+
+<predicate>	=>	<relation> {<equivalence> <relation>}*
+
+<equivalence>	=>	"=" | "==" | "<>" | "#" | "!=" | "~="
+
+<relation>	=>	<or> {<relate> <or>}*
+
+<relate>	=>	">=" | ">" | "<=" | "<"
+
+<or>		=>	<xor> {"|" <xor>}*
+
+<xor>		=>	<and> {("^^" | xor) <and>}*
+
+<and>		=>	<shift> {"&" <shift>}*
+
+<shift>		=>	<simple> {("<<" | ">>") <simple>}*
+
+<simple>	=>	<term> {("+" | "-") <term>}*
+
+<term>		=>	<factor> {("*" | "/" | "%" | "//" | "%%") <factor>}*
+
+<factor>	=>	<primary> [("^" | "**") <factor>]
+
+<primary>	=>	("+" | "-" | "~" | "!" | not) <primary>
+			<constant>
+			<variable>
+			"(" <boolean> ")"
+			sqrt "(" <boolean> ")"
+			min "(" <boolean> , <boolean> ")"
+			max "(" <boolean> , <boolean> ")"
+
+<identifier>	=>	<letter> {<letter> | <number>}*
+
+<constant>	=>	{<number>}+ | <string>
+
+<string>	=>	'"'.*'"' | "'".*"'"
+
+
+
+
+Notes:
+	Logical Equality: = or ==
+	Logical Inequality: #, <>, !=, or ~=
+	Exponentiation: ^ or ** (it is supposed to be right associative)
+	All constants are unsigned.
+	Strict division is // and strict modulus is %%.
+		If n // d == q * d + r then 0 <= r < |d|.
+		Basically, this relation still holds:
+			x // y * y + x %% y == x
+		however, the remainder is strictly positive.
+	The language has call and return to support subroutines,
+		but no stack.
+	The [;] after print indicates that printing a
+		newline should be surpressed.
+	The crap in <string> means anything surrounded by
+		either single or double quote marks.
+	The optional argument to read and print is the base (2 - 36).
+	Prints prints a string: if given a number, it outputs the number,
+           little-endian, as a string. Reads reads a similar string.
+	Printf prints argument 1 in a field argument 2 wide, filled with
+		the repitition of argument 3, or '0' if ommitted, in base
+		argument 4, or 10 if ommitted. There must be argument 3 for
+		there to be argument 4.
+	I will not add the hex, octal, and binary number handling to the BNF.

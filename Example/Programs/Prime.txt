@@ -1,0 +1,31 @@
+var x, y, z, a.
+
+ (*
+   A simple program to calculate all primes up to a certain number.
+      It does a brute-force search for each prime.
+
+   Its amazing the speed improvement when we don't calculate sqrt(x)
+      every iteration.
+ *)
+
+begin
+   prints "Maximum value to list primes to: ";.
+   read z.
+   for x = 2 to z
+      if x = 2 || x = 3
+         print x
+      else if !(x % 2 = 0)
+         begin
+            y := 3.
+            a <- sqrt(x).
+            while y <= a
+               begin
+                  if x % y = 0
+                     y := x
+                  else
+                     y := y + 2.
+               end.
+            if x <> y
+               print x.
+         end.
+end.

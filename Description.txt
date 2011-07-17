@@ -1,0 +1,44 @@
+Logical description:
+
+This BigInteger class implements a sign-magnitude arbitrary-precision
+integer. The implementation treats the number as a binary string with no
+leading zeros and a "disembodied" sign bit. The implications are mostly in the
+handling of the complement (bitwise not "~") operation. In two's complement,
+the complement of zero is negative one. In one's complement, it is (negative)
+zero. In fixed-width sign-magnitude, the complement of zero is the most
+negative integer that can be represented. In this variable-width
+representation, the complement of zero is zero. Like two's complement, this
+implementation keeps zero non-negative. While a negative zero is
+representable, the code prohibits its creation. Keep in mind that the
+magnitude of the complement of a number is always less than the magnitude of
+that number. Some examples: ~(2^n) = -(2^n-1), ~(2^n-1) = 0.
+
+Take IO and array handling in the BF interpreter:
+Without a real array, the interpreter creates an array by partitioning the
+BigInt into 8-bit pieces. To get the x^th index, the code shifts the BigInt
+right by x * 8 and then ANDs it with 255, just as one would do in two's
+complement. Setting an array index, however, is another story. In two's
+complement, one might shift 255 left by x * 8, complement the result, AND
+the array with this value, then shift the new value left by x * 8, and OR it
+into the array. If this implementation were fixed-width, this would do just
+what was intended: clear the 8 bits of the array at that index so that the
+new data is inserted with the OR. However, due to the variable-width
+implementation, the actual result would be to erase the array past the
+(x - 1)^th index. The BF interpretter gets around this in a simple way: it
+shifts 255 left by x * 8 and ORs this into the array, so the array at that
+index has all 8 bits set. It then ORs 256 to the data to be entered into the
+array, and NOTs the result. The 256 bit is cleared in the NOT operation, and
+it ensures that any leading zeros of the 8 bits will be complemented into
+ones. This result is then shifted left by x * 8 and XORed into the array. As
+the NOT turned all the zeros into ones (and vice-versa) and the data space is
+now filled with all ones, the XOR clears all zeros, leaving the data as it
+should be in the array.
+Another solution would have been to XOR the data to be put into the array
+with 255. This was not used in the case of the BF interpretter due to
+overflows in '+' and '-' (which is how '-' was changed to work) creating a
+256 bit, which would corrupt the next data element.
+
+The point of all of this is that this implementation behaves in a manner which
+most programmers are likely not accustomed, so beware. Most importantly:
+   ~~x != x
+This should be kept in mind.

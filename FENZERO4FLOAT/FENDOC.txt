@@ -1,0 +1,111 @@
+FENZERO4FLOAT
+
+FENZERO is a program to find the zero of a function by brute force. It can,
+alternatively, find the point where a function becomes imaginary, but that
+will be described later. It started out as a modification of FEN, an LL(0)
+language that I wrote before I knew what LL(0) meant. It was based off of
+Polish-notation logic, simplifying the parser immensely. That was FENZERO1.
+FENZERO2 added the NAN logic, to be described further later. FENZERO3 went
+from Polish-notation to infix by rewriting the parser as a recursive-descent
+parser, and the grammer as an LL(1) grammer. Hooray for a class on compilers.
+FENZERO4 adds constant sub-expression folding, also to be described further.
+
+So, the program takes as input a function of one variable: x. DO NOT put an
+"f(x) =" or "y =" at the begining, it will mess things up. Wait, here is the
+EBNF:
+   <equation> := <expr> ";"
+   <expr> := <term> {("+" | "-") <term>}*
+   <term> := <factor> {("*" | "/") <factor>}*
+   <factor> := <primary> [("^" | "**" | "E") <factor>}*
+   <primary> := "-" <primary>
+              | <number> | "e" | "pi" | "x"
+              | [("abs" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" |
+                  "log" | "ln" | "sqrt" | "exp" | "pow")] "(" <expr> ")"
+
+What does that mean? Mostly, that the function is read in a mathematically
+correct way, for the most part. I'll try to list the implications in order.
+Firstly, the equation must end in a semicolon. That's required. Secondly,
+plus ("+") and minus ("-") have the same precedence, the lowest, and are
+evaluated left-to-right. Next higher in precedence is multiplication ("*")
+and division ("/"), and they are also evaluated left-to-right. Next higher is
+exponentiation (either "^" or "**") and the "E" operator, which are evaluated
+right-to-left. Next higher is unary negation, and then finally anything within
+parenthesis. There can be any number of negative signs, but no positive signs.
+[Sorry.] The constants "e" and "pi" are built-in. The only thing not mentioned
+here is the format of <number>, which would be:
+   <digit>+[.<digit>*] | .<digit>*
+where an errant "." is interpretted as "0.0".
+
+Now, the list of built-in functions. The arguments for functions should be
+enclosed in parenthesis.
+   abs    absolute value
+   sin    sine of an angle in radians
+   cos    cosine ""
+   tan    tangent ""
+   asin   principle inverse sine, returning an angle in radians
+   acos   "" cosine ""
+   atan   "" tangent ""
+   log    common (base 10) logarithm
+   ln     natural (base e) logarithm
+   sqrt   square root
+   exp    e raised to the power of the argument
+   pow    10 raised to the power of the argument
+
+Finally, that pesky "E" operator. For example: xEy means x * 10 ^ y. The
+parser doesn't read in normal scientific notation. The implications of this
+are that one must always use a capitol "E", that the exponent cannot have an
+explicit positive sign (so no "1.7E+02"), and that the exponent does not have
+to be an integer.
+
+WHAT TO DO AFTER ENTERING AN EQUATION:
+
+Confirm that the equation was inputted and reduced correctly.
+Choose mode of operation.
+Input guess.
+Input direction of search.
+If using Method 1, enter the slope of the function around the zero.
+Recieve answer, or an error.
+
+The program has two modes of operation: Method 0 and Method 1. Method 1 only
+works if the zero is at a point where the function passes through the x-axis,
+and it requires the slope at that zero. Method 0 works even if the function is
+tangent to the x-axis. Method 1 is usually faster than Method 0.
+
+Method 0 is like a skate-boarder or snow-boarder in a half-pipe. If the next
+step produces a value that is larger than the previous step, it turns around,
+in place, and decreases the step size. Because the function is now increasing,
+the algorithm knows that the zero must be in the opposite direction that it is
+searching. This method can get stuck in a local minimum [if f(x) is positive]
+or a local maximum [if f(x) is negative].
+
+Method 1 looks for a change in sign of the result. It requires the slope to
+know which direction to travel from the start point to get to the zero. This
+saves it from getting caught in local minima/maxima. It also allows the user
+to point it in the wrong direction. When the sign change happens, it turns
+around and decreases the step size. Roughly half of the time, this should
+require eleven less steps than Method 0 PER DIGIT.
+
+As both methods require a direction of search, it is used to fine-tune the
+step size also. Inputting 0.1 or -0.1 as the direction of search causes the
+step size to start at 0.01 instead of the built-in 0.1.
+
+NAN LOGIC:
+
+If the program takes a step and the result is a NAN (Not-A-Number, the result
+when the argument to a function is not in the range of that function), the
+program takes a step back, to the real result, decreases the step size, and
+takes another step forward. This allows the program to find zeros that occur
+on the boundry of when a function becomes imaginary, but it will incorrectly
+report finding a zero at the boundry of where a function becomes imaginary.
+It's a useful feature, but also a potential pitfall.
+
+CONSTANT SUB-EXPRESSION FOLDING:
+
+The program looks for constant subexpressions to fold.
+   Examples:
+      3 + 5 + x      becomes     8 + x
+      sin(e)         becomes     0.410781290556742
+The program will not, however, modify the order of operations, so:
+      3 + x + 5      stays       3 + x + 5
+The second line of output is the result after this step, so the user can be
+assured that this process was performed correctly.

@@ -1,0 +1,1 @@
+g++ -s -Wall -Wextra -Wconversion -o FENZERO FENEVAL.c FENFAIL.c FENFREE.c FENLOOP.c FENREAD.c FENPRINT.c FENFOLD.c ../Float/DecFloat.cpp ../Float/Float.cpp ../Float/Fixed.cpp ../Float/Functions.cpp ../Float/Constants.cpp ../Integer.cpp ../BitField.cpp

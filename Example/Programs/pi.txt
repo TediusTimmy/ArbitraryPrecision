@@ -1,0 +1,74 @@
+var sum, digits, one, alt, quot, arg, power, factor, raise, pi.
+
+ (*
+   Uses:
+      pi/4 = 12*atan(1/49)+32*atan(1/57)-5*atan(1/239)+12*atan(1/110443)
+         from K. Takano as reported by Yasumasa Kanada.
+
+   The arctangent subroutine only works on |arg| < 1
+   The program abuses the fact that, internally, the Halt operation is
+      a return with an empty call stack, and that a return is implicitly
+      added to the end of the code.
+
+   As subroutines may seem useless, do to their implementation, they can
+      be put to use, so long as they aren't recursive.
+ *)
+
+begin
+   prints "Digits of pi to calculate: ";.
+   read digits.
+
+   digits = digits + 7 { for accuracy }.
+
+   one = 10 ^ digits.
+
+   arg = one / 49.
+   call arctangent.
+
+   pi = 48 * sum.
+
+   arg = one / 57.
+   call arctangent.
+
+   pi = pi + 128 * sum.
+
+   arg = one / 239.
+   call arctangent.
+
+   pi = pi - 20 * sum.
+
+   arg = one / 110443.
+   call arctangent.
+
+   pi = pi + 48 * sum.
+
+   factor = 10 ^ 7.
+   one = one / factor.
+   quot = pi % factor.
+   pi = pi / factor.
+   if quot > factor / 2
+      pi = pi + 1.
+
+   print pi / one;.
+   prints ".";.
+   print pi % one.
+
+   return.
+
+: arctangent
+   sum = arg.
+   raise = arg ^ 2 / one.
+   power = arg * raise / one.
+   factor = 3.
+   alt = 1.
+   quot = power / factor.
+   while quot
+      begin
+         if alt sum = sum - quot
+         else sum = sum + quot.
+         alt = !alt.
+         power = power * raise / one.
+         factor = factor + 2.
+         quot = power / factor.
+      end.
+end.

@@ -1,0 +1,78 @@
+Usage information below, but first the Liscense:
+
+Integer Playground by Thomas DiModica.
+Copyright (c) 2010, 2011 Thomas DiModica.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. Neither the name of Thomas DiModica nor the names of other contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THOMAS DIMODICA AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THOMAS DIMODICA OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+
+
+
+
+This is an infix calculator that only works on integers.
+It understands:
+	+ Addition
+		Is absolute value when used as a unary operator.
+	- Subtraction
+		Is negation when used as a unary operator.
+	* Multiplication
+	/ Division
+	% Modulo
+		Division and Modulo work according to the mathematical
+		definition of the division algorithm: the remainder is
+		always positive.
+	^ Exponentiation
+	! Factorial
+	P Permutation
+	C Combination
+	N Minimum
+	M Maximum
+	G Greatest Common Factor (Divisor)
+	L Least Common Multiple (Denominator)
+		The six functions above are treated as infix operators
+		by the calculator.
+	I Modular Inverse
+	S Square Root (Truncated, prefix "operator")
+	F Fibbonacci Number (postfix, like '!')
+
+Parenthesis can be used to any level of nesting and can be mixed with brackets
+and braces, but the program doesn't distinguish between the three when
+reporting errors.
+
+Use ';' to end a calculation, as white space is ignored. Numbers can contain
+spaces and newlines, which makes inputting large numbers easier.
+
+Use '@' to represent the value of the previous calculation.
+
+EOF exits (Ctrl-Z on Windows, Crtl-D on Linux and Unix-based Mac).
+
+This calculator works in bases other than 10 as a command line option:
+	IntCalc [ output_base [ input_base ] ]
+Note that to get an input base other than 10, one must also specify an output
+base. Valid bases are 2 to 36. The characters 'a-z' (lower case) are used as
+the extra digits in these higher bases. When inputting a number, the parser
+will convert digits >= the current input base to the maximum of the current
+input base, i.e. "1100ahello" is read as 1100999999 if the input base is 10.

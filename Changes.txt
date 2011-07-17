@@ -1,0 +1,113 @@
+So I have been trying to make IntCalc faster, specifically in calculating
+2^2^20. IntCalc originally took around 14 minutes to compute this and display
+it, while GNU bc takes around 14 seconds (on my machine). My first step was to
+modify BitField. BitField was originally written to be memory conservative and
+manage memory meticulously. I rewrote it so that the bit data was not
+contained in it, but contained in another structure that did reference
+tracking. BitField became Copy-On-Write, and did some more optimizations:
+it no longer reallocated memory when a number required less than was
+allocated, and anticipates carries when it creates a copy during addition.
+I also changed it from storing 15 bits in a 16 bit short to storing 32 bits in
+a 32 bit long. The overhead of type promotion seems to lose over the less
+operations that are performed due to the greater storage density. Moving on to
+Integer, I got the best speed performance increase by changing toString() and
+fromString() to pull and push "fat digits" from the BigInt. In decimal,
+toString() pulls out nine digits from the BigInt, then breaks them apart. It
+does one long division and nine small divisions, instead of nine long
+divisions. At this point, I started improving the functionality of the
+calculator, which led me to find a bug in compare(). My next project was to
+implement word division, which is apparently slightly faster. Division was
+also changed to have defined behavior should quotient and remainder be
+aliased, as it had undefined behavior before (undefined as in could explode).
+I keep comparing IntCalc to bc, and overall, either it is slower at addition
+and subtraction, or the overhead of converting to/from overwhelms any speed
+improvement. It IS slower at multiplication. I have no intention, at this
+point, of implementing Karatsuba Multiplication as bc does, and O(n^2) can't
+beat O(n^1.6). Division, on the other hand, is a win (At least on the level of
+dividing 200 digit numbers by 100 digit numbers, twice, as I did 100K times
+during a test [The test was actually to ensure the correctness of division,
+but I couldn't help but time it]). Both binary and word division are both
+faster than bc's decimal division.
+After all of these changes, 2^2^20 (that's 2^1048576 not 2^40) now takes about
+50 seconds with IntCalc, a dramatic improvement.
+
+2011/01/04
+
+I found a bug in the division code. It's easy to reproduce: 2^1024/2^512 = 0.
+A '>' should have been '>='. Decided to add the Fibbonacci numbers as an
+addition, and an extra post-fix "operator".
+Remember: fib(n+1) / fib(n) * 2 - 1 = sqrt(5) for very large values of n.
+Try: 500F*10^50/499F*2-10^50; Mentally place a '.' after the initial 2.
+
+I did some math (!) and found that division and multiplication should
+altogether cease to work at around 1 billion digit numbers. This is a
+limitation of using 32 bit ints to specify shift values. Such numbers would be
+using megabytes of memory, at that point. Addition, subtraction, and
+single word multiplication and division (which are used to convert to/from
+strings) should still work beyond that, in theory, to the limit of memory.
+
+2011/01/05
+
+After looking at other people's code, I found a better solution for Newton-
+Rhapson sqrt() in William Rossi's code. I implemented it instead. What I was
+using was optimized for floating-point calculations, not integer.
+
+2011/01/19
+
+I decided to rewrite the loop in BitField::operator*= to be more symmetric with
+the one in BitField::operator/=. Hopefully, it will be easier for optimizers
+to understand.
+
+2011/01/21
+
+I fixed a crippling division bug, where division would hang on the right
+input. Try S(2*10^20); to see the error. I then tried to make it always
+generate a leading 0, but that is as bad as generating a trailing 0. I finally
+found the winning combination of code to make things work correctly: and it
+always generates a leading 0.
+
+2011/01/23
+
+I decided to make Integer a true binary bigint, and make it do lots of funny
+stuff and be independant. I moved the functions into the Integer namespace,
+and added alot of useful functions.
+
+2011/01/26
+
+So, I didn't even do a test compile on 1/26, then I tried to use the file on
+May 5, and had to fix it. This incorporates all of the fixes, mostly random
+misuse of member data. There was also a bug in the Integer >> and <<, where a
+negative shift wasn't turned into a positive shift in the other direction. The
+only thing that isn't included is the functions to turn strings into Integers
+and back agian. Most people won't use them. Finally, I added the divide
+tempering test from Knuth, instead of running a loop.
+
+2011/05/20
+
+Fixed a stupid bug in toString. Now, it returns an empty string when base is
+not in [2,36], instead of trying to do undefined math. Fixed a bug in
+divApprox, a wierd off-by-one error that escaped the 100K tests.
+
+2011/05/22
+
+Changed some questionable logic in Bitfield |= and ^=. We'll see if I broke
+anything.
+
+2011/07/09
+
+Made what are mostly cosmetic changes in 32-bit code, but should allow the
+code to be compiled correctly under LP64 64-bit code semantics.
+
+2011/07/10
+
+I compiled under 64-bit GCC today. Success. With -Wconversion, the only
+warnings generated are ignorable: until we have 256-bit computers, I could
+use an unsigned char for the ints in question. Thinking about it, the code
+should also work under LLP64 semantics (Microsoft), but it looses the only
+benefit of 64 bit code: large address space.
+
+2011/07/11
+
+Fixed some instances where -0 could have been generated.
+
+2011/07/13
