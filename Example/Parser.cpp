@@ -385,28 +385,31 @@ long ParserClass::statement (void)
 
             statement();
 
+             //while or until is OPTIONAL
             if ((Internal() != Tokens::While) &&
                 (Internal() != Tokens::Until))
              {
-               expectationError("\"while\" or \"until\"");
-               errorC++;
-               throw ParseError ();
-             }
-
-            if (Internal() == Tokens::Until) bit = true;
-            GNT();
-
-            boolean();
-
-            if (bit)
-             {
-               temp.opcode = LogicalNot_Op;
+                //Produce the jump to the top of the loop.
+               temp.opcode = BranchUnconditional_Op;
                dest->addOp(temp);
              }
+            else
+             {
+               if (Internal() == Tokens::Until) bit = true;
+               GNT();
 
-             //Produce the jump to the top of the loop.
-            temp.opcode = BranchConditional_Op;
-            dest->addOp(temp);
+               boolean();
+
+               if (bit)
+                {
+                  temp.opcode = LogicalNot_Op;
+                  dest->addOp(temp);
+                }
+
+                //Produce the jump to the top of the loop.
+               temp.opcode = BranchConditional_Op;
+               dest->addOp(temp);
+             }
 
             break;
 
