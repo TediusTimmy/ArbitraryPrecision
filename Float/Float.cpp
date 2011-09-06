@@ -702,7 +702,7 @@ namespace BigInt
 
       Fixed temp (Data);
 
-      temp.changePrecision(temp.getPrecision() - Exponent);
+      temp.setPrecision(temp.getPrecision() - Exponent);
 
       return temp.isInteger();
     }
@@ -710,11 +710,11 @@ namespace BigInt
    bool Float::isOdd (void) const
     {
       if (Exponent < 0) return false;
-      if ((Exponent >= Data.getPrecision()) || Data.isZero()) return false;
+      if ((Exponent > Data.getPrecision()) || Data.isZero()) return false;
 
       Fixed temp (Data);
 
-      temp.changePrecision(temp.getPrecision() - Exponent);
+      temp.setPrecision(temp.getPrecision() - Exponent);
 
       return temp.isOdd();
     }
@@ -722,11 +722,11 @@ namespace BigInt
    bool Float::isEven (void) const
     {
       if (Exponent < 0) return false;
-      if ((Exponent >= Data.getPrecision()) || Data.isZero()) return true;
+      if ((Exponent > Data.getPrecision()) || Data.isZero()) return true;
 
       Fixed temp (Data);
 
-      temp.changePrecision(temp.getPrecision() - Exponent);
+      temp.setPrecision(temp.getPrecision() - Exponent);
 
       return temp.isEven();
     }
