@@ -119,13 +119,21 @@ namespace DecFloat
    Float operator + (const Float & lhs, const Float & rhs)
     {
       Float temp;
-      unsigned long usePrec;
+      unsigned long usePrec, diff;
 
       usePrec = lhs.getPrecision() > rhs.getPrecision() ?
          lhs.getPrecision() :
          rhs.getPrecision();
 
-      temp.Data |= lhs.Data + rhs.Data;
+      diff = lhs.Data.exponent() >= rhs.Data.exponent() ?
+         lhs.Data.exponent() - rhs.Data.exponent() :
+         rhs.Data.exponent() - lhs.Data.exponent();
+
+      if ((diff > (usePrec + 1)) && rhs.isUnSpecial() && lhs.isUnSpecial())
+         temp.Data = lhs.Data.exponent() > rhs.Data.exponent() ?
+            lhs.Data : rhs.Data;
+      else
+         temp.Data |= lhs.Data + rhs.Data;
 
       temp.Data.changePrecision(usePrec);
 
@@ -140,13 +148,21 @@ namespace DecFloat
    Float operator - (const Float & lhs, const Float & rhs)
     {
       Float temp;
-      unsigned long usePrec;
+      unsigned long usePrec, diff;
 
       usePrec = lhs.getPrecision() > rhs.getPrecision() ?
          lhs.getPrecision() :
          rhs.getPrecision();
 
-      temp.Data |= lhs.Data - rhs.Data;
+      diff = lhs.Data.exponent() >= rhs.Data.exponent() ?
+         lhs.Data.exponent() - rhs.Data.exponent() :
+         rhs.Data.exponent() - lhs.Data.exponent();
+
+      if ((diff > (usePrec + 1)) && rhs.isUnSpecial() && lhs.isUnSpecial())
+         temp.Data = lhs.Data.exponent() > rhs.Data.exponent() ?
+            lhs.Data : -rhs.Data;
+      else
+         temp.Data |= lhs.Data - rhs.Data;
 
       temp.Data.changePrecision(usePrec);
 

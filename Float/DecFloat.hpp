@@ -113,6 +113,8 @@ namespace DecFloat
          bool isOdd (void) const { return Data.isOdd(); }
          bool isEven (void) const { return Data.isEven(); }
 
+         bool isUnSpecial (void) const { return Data.isUnSpecial(); }
+
          std::string toString (void) const { return Data.toString(); }
 
          void fromString (const std::string & src)
@@ -165,6 +167,7 @@ namespace DecFloat
           { Data = src.Data; return *this; }
 
             //Only works for finite, nonzero _numbers_
+            // i.e. isUnSpecial() returns _true_
          int compare (const Float & to) const
           { return Data.compare(to.Data); }
 

@@ -105,22 +105,21 @@ namespace BigInt
 */
    bool change (const Float & arg1, const Float & arg2)
     {
-      if (arg1.isZero() || arg1.isInfinity() || arg1.isNaN() ||
-          arg2.isZero() || arg2.isInfinity() || arg2.isNaN())
+      if (!arg1.isUnSpecial() || !arg2.isUnSpecial())
          return false;
 
-      unsigned long prec;
-      long diff;
+      unsigned long prec, diff;
 
       prec = arg1.getPrecision() >= arg2.getPrecision() ?
          arg1.getPrecision() :
          arg2.getPrecision();
 
-      diff = arg1.exponent() - arg2.exponent();
-      diff = diff < 0 ? -diff : diff;
+      diff = arg1.exponent() > arg2.exponent() ?
+         arg1.exponent() - arg2.exponent() :
+         arg2.exponent() - arg1.exponent();
 
          //Account for a rounding digit.
-      if ((unsigned long) diff > (prec + 1)) return false;
+      if (diff > (prec + 1)) return false;
       return true;
     }
 

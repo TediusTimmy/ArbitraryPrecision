@@ -88,6 +88,9 @@ namespace BigInt
          bool isZero (void) const
             { if (Infinity || NaN) return false; return Data.isZero(); }
 
+         bool isUnSpecial (void) const
+            { return !(Data.isZero() || NaN || Infinity); }
+
          bool isInteger (void) const;
          bool isOdd (void) const;
          bool isEven (void) const;
@@ -137,6 +140,7 @@ namespace BigInt
          Float & operator |= (const Float &);
 
             //Only works for finite, nonzero _numbers_
+            // i.e. isUnSpecial() returns _true_
          int compare (const Float &) const;
 
             //Cowlishaw doesn't do normalization, but I need it to make
@@ -168,10 +172,11 @@ namespace BigInt
       All of the "important" scientific functions.
       __I__ don't really use the hyperbolic functions, so they are not here.
       They are easily derivable, however. Just steal the code from SlowCalc.
+      Implement expm1() and use it instead for sinh() and cosh().
       Every function marked with * is fundemental,
          all other functions are derived from them.
     */
-   Float sqrt (const Float &); // * 
+   Float sqrt (const Float &); // *
 
    Float exp (const Float &); // *
    Float log (const Float &); // *
