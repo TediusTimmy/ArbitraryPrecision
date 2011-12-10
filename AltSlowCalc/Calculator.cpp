@@ -322,6 +322,21 @@ void Calculator::doStuff (string doThis)
          stacks[someThing].pop();
        }
     }
+   else if (doThis == "isint")
+    {
+      left = stacks[currentStack].top(); stacks[currentStack].pop();
+      stacks[currentStack].push(Float(left.isInteger() ? "1" : "0"));
+    }
+   else if (doThis == "isodd")
+    {
+      left = stacks[currentStack].top(); stacks[currentStack].pop();
+      stacks[currentStack].push(Float(left.isOdd() ? "1" : "0"));
+    }
+   else if (doThis == "iseven")
+    {
+      left = stacks[currentStack].top(); stacks[currentStack].pop();
+      stacks[currentStack].push(Float(left.isEven() ? "1" : "0"));
+    }
    else
     {
       left = Float(doThis);

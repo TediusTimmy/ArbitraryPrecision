@@ -75,7 +75,8 @@ enum Instruction
    Print_Op,
    PrintString_Op,
    PrintPadded_Op,
-   Read_Op
+   Read_Op,
+   StrCat_Op
  };
 
 enum SymbolType

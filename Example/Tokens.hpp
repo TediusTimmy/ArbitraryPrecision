@@ -70,6 +70,8 @@ namespace Tokens
       Colon,		/* : */
       SemiColon,	/* ; */
 
+      StrCat,		/* @ */
+
       OpenParen,	/* ( */
       CloseParen,	/* ) */
 
@@ -127,6 +129,7 @@ namespace Tokens
       Comma,
       Colon,
       SemiColon,
+      StrCat,
       OpenParen,
       CloseParen,
       OpenComment,

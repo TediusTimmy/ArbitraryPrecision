@@ -123,6 +123,15 @@ string doPad (long base, const string & fill,
    return temp2 + temp;
  }
 
+Integer strcat (const Integer & lhs, const Integer & rhs)
+ {
+   long shift;
+
+   shift = ((lhs.msb() >> 3) + 1) << 3;
+
+   return (lhs | (rhs << Integer((long long) shift)));
+ }
+
 void VirtualMachine::interpretOps (void)
  {
     /*
@@ -457,6 +466,13 @@ void VirtualMachine::interpretOps (void)
                std::getline(std::cin, temp);
                dataStack.push(intify(temp));
              }
+
+            break;
+
+         case StrCat_Op:
+            op = dataStack.top();
+            dataStack.pop();
+            dataStack.top() = strcat(dataStack.top(), op);
 
             break;
 

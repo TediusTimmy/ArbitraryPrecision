@@ -1,4 +1,4 @@
-<program>	=>	{var <identifier> {, <identifier>}* .}*
+<program>	=>	{var <identifier> {, <identifier>} .}
 				<statement> .
 
 <statement>	=>	: <identifier> <statement>
@@ -24,29 +24,29 @@
 
 <variable>	=>	<identifier>
 
-<boolean>	=>	<clause> {("||" | or) <clause>}*
+<boolean>	=>	<clause> {("||" | or) <clause>}
 
-<clause>	=>	<predicate> {("&&" | and) <predicate>}*
+<clause>	=>	<predicate> {("&&" | and) <predicate>}
 
-<predicate>	=>	<relation> {<equivalence> <relation>}*
+<predicate>	=>	<relation> {<equivalence> <relation>}
 
 <equivalence>	=>	"=" | "==" | "<>" | "#" | "!=" | "~="
 
-<relation>	=>	<or> {<relate> <or>}*
+<relation>	=>	<or> {<relate> <or>}
 
 <relate>	=>	">=" | ">" | "<=" | "<"
 
-<or>		=>	<xor> {"|" <xor>}*
+<or>		=>	<xor> {"|" <xor>}
 
-<xor>		=>	<and> {("^^" | xor) <and>}*
+<xor>		=>	<and> {("^^" | xor) <and>}
 
-<and>		=>	<shift> {"&" <shift>}*
+<and>		=>	<shift> {"&" <shift>}
 
-<shift>		=>	<simple> {("<<" | ">>") <simple>}*
+<shift>		=>	<simple> {("<<" | ">>") <simple>}
 
-<simple>	=>	<term> {("+" | "-") <term>}*
+<simple>	=>	<term> {("+" | "-" | "$") <term>}
 
-<term>		=>	<factor> {("*" | "/" | "%" | "//" | "%%") <factor>}*
+<term>		=>	<factor> {("*" | "/" | "%" | "//" | "%%") <factor>}
 
 <factor>	=>	<primary> [("^" | "**") <factor>]
 
@@ -58,7 +58,7 @@
 			min "(" <boolean> , <boolean> ")"
 			max "(" <boolean> , <boolean> ")"
 
-<identifier>	=>	<letter> {<letter> | <number>}*
+<identifier>	=>	<letter> {<letter> | <number>}
 
 <constant>	=>	{<number>}+ | <string>
 
@@ -71,6 +71,7 @@ Notes:
 	Logical Equality: = or ==
 	Logical Inequality: #, <>, !=, or ~=
 	Exponentiation: ^ or ** (it is supposed to be right associative)
+	String Concatenation: $
 	All constants are unsigned.
 	Strict division is // and strict modulus is %%.
 		If n // d == q * d + r then 0 <= r < |d|.

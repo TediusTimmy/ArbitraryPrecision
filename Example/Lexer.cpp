@@ -48,6 +48,7 @@ void LexerClass::LoadOneChar (void)
    OneChar.add(",");
    OneChar.add(":");
    OneChar.add(";");
+   OneChar.add("$");
    OneChar.add("(");
    OneChar.add(")");
    OneChar.add("{");

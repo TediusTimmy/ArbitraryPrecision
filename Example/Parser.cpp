@@ -957,10 +957,12 @@ long ParserClass::simple (void)
 
    term();
 
-   while ((Internal() == Tokens::Plus) || (Internal() == Tokens::Minus))
+   while ((Internal() == Tokens::Plus) || (Internal() == Tokens::Minus) ||
+          (Internal() == Tokens::StrCat))
     {
       if (Internal() == Tokens::Plus) temp.opcode = Add_Op;
-      else temp.opcode = Subtract_Op;
+      else if (Internal() == Tokens::Minus) temp.opcode = Subtract_Op;
+      else temp.opcode = StrCat_Op;
       GNT();
 
       term();

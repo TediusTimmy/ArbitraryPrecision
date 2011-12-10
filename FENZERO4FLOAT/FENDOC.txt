@@ -16,8 +16,8 @@ EBNF:
    <equation> := <expr> ";"
    <expr> := <term> {("+" | "-") <term>}*
    <term> := <factor> {("*" | "/") <factor>}*
-   <factor> := <primary> [("^" | "**" | "E") <factor>}*
-   <primary> := "-" <primary>
+   <factor> := <primary> [("^" | "**" | "E") <factor>]
+   <primary> := ("+" | "-") <primary>
               | <number> | "e" | "pi" | "x"
               | [("abs" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" |
                   "log" | "ln" | "sqrt" | "exp" | "pow")] "(" <expr> ")"
@@ -30,9 +30,9 @@ evaluated left-to-right. Next higher in precedence is multiplication ("*")
 and division ("/"), and they are also evaluated left-to-right. Next higher is
 exponentiation (either "^" or "**") and the "E" operator, which are evaluated
 right-to-left. Next higher is unary negation, and then finally anything within
-parenthesis. There can be any number of negative signs, but no positive signs.
-[Sorry.] The constants "e" and "pi" are built-in. The only thing not mentioned
-here is the format of <number>, which would be:
+parenthesis. There can be any number of negative signs, and any number of
+ignored plus signs. The constants "e" and "pi" are built-in. The only thing
+not mentioned here is the format of <number>, which would be:
    <digit>+[.<digit>*] | .<digit>*
 where an errant "." is interpretted as "0.0".
 
@@ -53,8 +53,7 @@ enclosed in parenthesis.
 
 Finally, that pesky "E" operator. For example: xEy means x * 10 ^ y. The
 parser doesn't read in normal scientific notation. The implications of this
-are that one must always use a capitol "E", that the exponent cannot have an
-explicit positive sign (so no "1.7E+02"), and that the exponent does not have
+are that one must always use a capitol "E" and that the exponent does not have
 to be an integer.
 
 WHAT TO DO AFTER ENTERING AN EQUATION:

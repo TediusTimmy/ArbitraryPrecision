@@ -25,8 +25,8 @@
    <equation> := <expr> ";"
    <expr> := <term> {("+" | "-") <term>}*
    <term> := <factor> {("*" | "/" | "%") <factor>}*
-   <factor> := <primary> [("^" | "**" | "E") <factor>}*
-   <primary> := "-" <primary>
+   <factor> := <primary> [("^" | "**" | "E") <factor>]
+   <primary> := ("+" | "-") <primary>
               | <number> | "e" | "pi" | "x"
               | [("abs" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" |
                   "log" | "ln" | "sqrt" | "exp" | "pow")] "(" <expr> ")"
@@ -241,6 +241,13 @@ pair * factor (void)
 pair * primary (void)
 {
    pair * leaf;
+
+   if (CurTok == 512)
+    {
+      GNT();
+
+      return primary();
+    }
 
    if (CurTok == 2048)
     {
