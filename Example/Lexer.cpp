@@ -228,7 +228,7 @@ void LexerClass::GetNextToken (void)
          UnGetNextChar();
 
          internal = Tokens::INTEGER;
-         location = dest->addSymbol(Symbol(temp, Constant_t, Integer(temp)) );
+         location = dest->addSymbol(Symbol("", Constant_t, Integer(temp)) );
        }
       else if (temp[0] == '@') //Read a special number
        {
@@ -242,7 +242,7 @@ void LexerClass::GetNextToken (void)
                UnGetNextChar();
 
                internal = Tokens::INTEGER;
-               location = dest->addSymbol( Symbol(temp, Constant_t,
+               location = dest->addSymbol( Symbol("", Constant_t,
                   Integer(temp.substr(2, temp.length()), 16) ) );
 
                break;
@@ -260,7 +260,7 @@ void LexerClass::GetNextToken (void)
                UnGetNextChar();
 
                internal = Tokens::INTEGER;
-               location = dest->addSymbol( Symbol(temp, Constant_t,
+               location = dest->addSymbol( Symbol("", Constant_t,
                   Integer(temp.substr(2, temp.length()), 8) ) );
 
                break;
@@ -278,7 +278,7 @@ void LexerClass::GetNextToken (void)
                UnGetNextChar();
 
                internal = Tokens::INTEGER;
-               location = dest->addSymbol( Symbol(temp, Constant_t,
+               location = dest->addSymbol( Symbol("", Constant_t,
                   Integer(temp.substr(2, temp.length()), 2) ) );
 
                break;
@@ -383,7 +383,7 @@ void LexerClass::GetNextToken (void)
 
             internal = Tokens::INTEGER;
             location = dest->addSymbol(
-               Symbol("\"" + temp, Constant_t, intify(temp)) );
+               Symbol("", Constant_t, intify(temp)) );
           }
          else if (internal == Tokens::OpenComment)
           { //Agian, this was folded in to the one-char case.

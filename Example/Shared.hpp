@@ -216,7 +216,8 @@ class SymbolTable
        }
 
        /*
-         Get the index of the symbol whose name is "name".
+         Get the index of the symbol whose name is "name",
+            but only from symbols whose type is not Constant_t.
          Return -1 if there is no such symbol.
          Uses a simple linear search, as we don't sort our symbol table.
          I think that sorting the table would break code generation.
@@ -227,7 +228,27 @@ class SymbolTable
          long ret = -1;
          for (bool found = false; (i < Symbols.size()) && (found == false); i++)
           {
-            if (Symbols[i].name == name)
+            if ((Symbols[i].type != Constant_t) && (Symbols[i].name == name))
+             {
+               ret = i;
+               found = true;
+             }
+          }
+         return ret;
+       }
+
+       /*
+         Get the index of the symbol whose value is "value",
+            but only from symbols whose type is Constant_t.
+         Return -1 if there is no such symbol.
+       */
+      long lookupSymbol (const Integer & value) const
+       {
+         size_t i = 0;
+         long ret = -1;
+         for (bool found = false; (i < Symbols.size()) && (found == false); i++)
+          {
+            if ((Symbols[i].type == Constant_t) && (Symbols[i].value == value))
              {
                ret = i;
                found = true;
@@ -242,7 +263,9 @@ class SymbolTable
        */
       long addSymbol (const Symbol & me)
        {
-         long ret = lookupSymbol(me.name);
+         long ret;
+         if (me.type == Constant_t) ret = lookupSymbol(me.value);
+         else ret = lookupSymbol(me.name);
          if (ret == -1)
           {
             ret = Symbols.size();
