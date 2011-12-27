@@ -1,0 +1,37 @@
+ (*
+   This is just the Taylor series for e.
+   It uses a scaled integer representation to calculate e
+   to an arbitrary number of decimal places.
+ *)
+
+dim one, iterator, sum, product, quotient, digits
+
+put "Digits of 'e' to calculate: "
+read digits
+
+digits := digits + 7 { for accuracy }
+
+one = 10 ^ digits
+sum <- one
+iterator = 1
+product = 1
+quotient := one / product
+
+while quotient
+   sum = sum + quotient
+   iterator = iterator + 1
+   product = product * iterator
+   quotient = one / product
+end while
+
+product = 10 ^ 7
+one = one / product
+quotient = sum % product
+sum = sum / product
+
+if quotient * 2 > product then sum = sum + 1
+
+print sum / one
+put "."
+print sum % one
+put 10

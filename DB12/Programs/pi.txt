@@ -1,0 +1,65 @@
+ (*
+   Uses:
+      pi/4 = 12*atan(1/49)+32*atan(1/57)-5*atan(1/239)+12*atan(1/110443)
+         from K. Takano as reported by Yasumasa Kanada.
+
+   The arctangent subroutine only works on |arg| < 1
+ *)
+
+put "Digits of pi to calculate: "
+read D
+
+D = D + 7 ; for accuracy
+
+O = 10 ^ D
+
+A = O / 49
+call arctangent
+
+P = 48 * Q
+
+A = O / 57
+call arctangent
+
+P = P + 128 * Q
+
+A = O / 239
+call arctangent
+
+P = P - 20 * Q
+
+A = O / 110443
+call arctangent
+
+P = P + 48 * Q
+
+F = 10 ^ 7
+O = O / F
+Q = P % F
+P = P / F
+
+if Q * 2 > F then P = P + 1
+
+print P / O
+put "."
+print P % O
+put 10
+
+end
+
+: arctangent
+   W = A
+   R = A ^ 2 / O
+   P = A * R / O
+   F = 3
+   A = 1
+   Q = P / F
+   while Q
+      if A then W = W - Q else W = W + Q
+      A = !A
+      P = P * R / O
+      F = F + 2
+      Q = P / F
+   wend
+
+   return

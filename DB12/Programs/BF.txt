@@ -1,0 +1,99 @@
+ (*
+   A brainfuck interpretter:
+      Constructive proof that the language is Turing complete.
+      C. Bohm has given a proof of brainfuck's Turing completeness
+         (though not by the name brainfuck).
+   Demonstrates well how to build arrays without arrays.
+
+   Interpretter EOF behavior: returns 0.
+
+   Cells are 8-bit 2's complement.
+ *)
+
+dim Text,\
+    PC { Program Counter },\
+    WD { While Depth },\
+    DP { Data Pointer },\
+    Data,\
+    CI { Current Instruction },\
+    Temp,\
+    Input
+
+put "Enter the program: " ## 10
+Temp <- 1
+while Temp
+   get Input
+   while Input && Temp
+      CI := Input & 255
+      Input := Input >> 8
+      select CI
+         and case '+'
+         and case '-'
+         and case '<'
+         and case '>'
+         and case '['
+         and case ']'
+         and case ','
+         and case '.'
+            Text := Text . CI
+         case '!'
+            Temp <- 0
+      end select
+   wend
+end while
+
+CI <- Text & 255
+while CI <> 0
+   PC <- PC + 8
+
+   select CI
+      and case '+'
+         Temp := (Data >> DP) & 255
+         Temp := ~((Temp + 1) | 256)
+         Data := (Data | (255 << DP)) ? (Temp << DP)
+      case '-'
+         Temp := (Data >> DP) & 255
+         Temp := ~((Temp + 255) | 256)
+         Data := (Data | (255 << DP)) ? (Temp << DP)
+      case '>'
+         DP = DP + 8
+      case '<'
+         DP = DP - 8
+      case ','
+         if Input == 0 then get Input
+         Temp := ~((Input & 255) | 256)
+         Input := Input >> 8
+         Data := (Data | (255 << DP)) ? (Temp << DP)
+      case '.'
+         Temp := (Data >> DP) & 255
+         put Temp
+      case '['
+         if not ((Data >> DP) & 255) then
+            WD <- 1
+            while WD
+               if (Text >> PC) & 255 == '[' then
+                  WD <- WD + 1
+               else if (Text >> PC) & 255 == ']' then
+                  WD <- WD - 1
+               end if
+               PC <- PC + 8
+            wend
+         fi
+      case ']'
+         if (Data >> DP) & 255 then
+            WD <- 1
+            PC <- PC - 8
+            while WD
+               PC <- PC - 8
+               if (Text >> PC) & 255 == ']' then
+                  WD <- WD + 1
+               else if (Text >> PC) & 255 == '[' then
+                  WD <- WD - 1
+               end if
+            end while
+            PC <- PC + 8
+         end if
+   end select
+
+   CI <- (Text >> PC) & 255
+end while
