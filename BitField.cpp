@@ -236,6 +236,13 @@ namespace BigInt
          Data = new BitHolder (*Data);
        }
 
+      if (lessUnits != 0)
+       {
+         Data->Length -= lessUnits;
+         std::memmove(Data->Data, Data->Data + lessUnits,
+            Data->Length * sizeof(Unit));
+       }
+
       if (shiftAmount != 0)
        {
          for (long i = Data->Length - 1; i >= 0 ; i--)
@@ -244,13 +251,6 @@ namespace BigInt
             carry = (Data->Data[i] << leftShift) & mask;
             Data->Data[i] = (Data->Data[i] >> shiftAmount) | oldCarry;
           }
-       }
-
-      if (lessUnits != 0)
-       {
-         Data->Length -= lessUnits;
-         std::memmove(Data->Data, Data->Data + lessUnits,
-            Data->Length * sizeof(Unit));
        }
 
       if (Data->Data[Data->Length - 1] == 0)

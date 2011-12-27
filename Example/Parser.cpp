@@ -395,7 +395,7 @@ long ParserClass::statement (void)
              }
             else
              {
-               if (Internal() == Tokens::Until) bit = true;
+               if (Internal() == Tokens::While) bit = true;
                GNT();
 
                boolean();
@@ -1152,6 +1152,8 @@ long ParserClass::primary (void)
             throw;
           }
 
+         boolean();
+
          try { expect(Tokens::CloseParen); }
          catch (ParseError)
           {
@@ -1162,6 +1164,8 @@ long ParserClass::primary (void)
          if (bit) temp.opcode = Maximum_Op;
          else temp.opcode = Minimum_Op;
          dest->addOp(temp);
+
+         break;
 
       default:
          expectationError("sign, identifier, constant, or \"(\"");

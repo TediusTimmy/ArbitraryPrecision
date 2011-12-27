@@ -111,3 +111,7 @@ benefit of 64 bit code: large address space.
 Fixed some instances where -0 could have been generated.
 
 2011/07/13
+
+Changed BitField::operator>>= to do less work, so it should be faster.
+
+2011/12/22
