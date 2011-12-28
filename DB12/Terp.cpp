@@ -517,7 +517,7 @@ void interpretOps (OpTable & opTable)
       ic++;
     }
 
-   std::cout << "Instructions executed: " << ic << std::endl;
+   std::cerr << "Instructions executed: " << ic << std::endl;
 
    return;
  }
