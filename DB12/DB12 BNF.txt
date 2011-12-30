@@ -6,7 +6,7 @@
 			""
 
 <statement>	=>	":" <identifier> ":"
-			<variable> <assign> <expression>
+			<location> <assign> <expression>
 			"if" <expression> "then" <nl> <statement_seq>
 				{"else" "if" <expression> "then" <nl>
 				<statement_seq>}
@@ -37,14 +37,16 @@
 			"end"
 
 			"print" <expression>
-			"input" <variable>
+			"input" <location>
 			"write" <expression>
-			"read" <variable>
+			"read" <location>
 			"goto" <expression> "," <expression>
 			"color"	<expression>
 			"bsave" <expression> "," <expression>
-			"bload" <variable> "," <expression> "," <expression>
+			"bload" <location> "," <expression> "," <expression>
 			"run" <expression>
+
+			"redim" <variable> "," <expression>
 
 			<nl>
 
@@ -56,6 +58,8 @@
 <label>		=>	<identifier>
 
 <variable>	=>	<identifier> | <letter>
+
+<location>	=>	<variable> [ "[" <expression> "]" ]
 
 <assign>	=>	"=" | ":=" | "<-"
 
@@ -89,7 +93,7 @@
 
 <primary>	=>	("+" | "-" | "~" | "!" | "not") <primary>
 			<constant>
-			<variable>
+			<location>
 			"(" <expression> ")"
 
 <constant>	=>	<number>+
@@ -140,7 +144,23 @@ Notes:
 
    so, I figured out (or just bothered to include) short-circuit evaluation
       and included the Ada versions, to boot
-      now all that is needed is arrays
+   working on arrays now
+      they are monstrosities, but so is the function system
+      all array indexes start at one (1)
+      only single dimensional arrays are supported
+      despite it being poor programming practice, one cannot declare
+         the bounds of an array in the dim statement
+      due to implementation, the control variable for a FOR loop
+         MUST be a scalar (or the first element of the array)
+      with the exception of the assignment statement, all references to
+         an array without using an index will be a reference to the first
+         element of the array
+      the assignment statement copies the entire array, so
+         in A = B, A recieves a copy of the whole array B, but
+         in A = B + 3, A is a scalar with the value B[1] + 3
+            A will be a scalar now even if A was an array before
+      writes outside of the array's bounds are ignored
+      reads outside of the arrays's bounds always return 0
 
 DUMBBASIC Function scheme:
    The main program is a function.

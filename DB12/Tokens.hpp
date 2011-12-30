@@ -70,6 +70,9 @@ namespace Tokens
       OpenParen,	/* ( */
       CloseParen,	/* ) */
 
+      OpenBrack,	/* [ */
+      CloseBrack,	/* ] */
+
       And,		/* and */
       Break,		/* break */
       Call,		/* call */
@@ -93,6 +96,7 @@ namespace Tokens
       Or,		/* or */
       Print,		/* print */
       Read,		/* read */
+      ReDim,		/* redim */
       Repeat,		/* repeat */
       Return,		/* return */
       Select,		/* select */
@@ -116,7 +120,7 @@ namespace Tokens
       TokenType Token;
     };
 
-   const int NumKeyWords = 30;
+   const int NumKeyWords = 31;
 
    const KeyWordType KeyWords [] = 
     {
@@ -140,6 +144,7 @@ namespace Tokens
       { "or", Or },
       { "print", Print },
       { "read", Read },
+      { "redim", ReDim },
       { "repeat", Repeat },
       { "return", Return },
       { "select", Select },

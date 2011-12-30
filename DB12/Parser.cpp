@@ -445,6 +445,7 @@ long ParserClass::statement (vector<BackRef> & fill)
             catch (ParseError)
              {
                expectationError("\":\"");
+               throw;
              }
 
             break;
@@ -455,6 +456,23 @@ long ParserClass::statement (vector<BackRef> & fill)
                temp.arg = location;
             else
                temp.arg = src->dest->getValue(location);
+
+            if (Internal == Tokens::OpenBrack)
+             {
+               GNT();
+
+               expression();
+
+               try { expect(Tokens::CloseBrack); }
+               catch (ParseError)
+                {
+                  expectationError("\"]\"");
+                }
+
+               temp.opcode = StoreIndirect_Op;
+             }
+            else
+               temp.opcode = Store_Op;
 
             if ((Internal != Tokens::Assign) &&
                 (Internal != Tokens::Equals))
@@ -467,7 +485,6 @@ long ParserClass::statement (vector<BackRef> & fill)
 
             expression();
 
-            temp.opcode = Store_Op;
             dest->addOp(temp);
 
             break;
@@ -940,6 +957,15 @@ long ParserClass::statement (vector<BackRef> & fill)
 
                temp.arg = location;
              }
+            else
+ /*
+   We don't kneed this line, but the code analyzer for GCC 4.1.1 (or 4.1.2?)
+   can't tell that bit is invariant and that location will only be used when
+   it is set, and therefore location is initialized.
+
+   Yes, this is to quell an incorrect warning.
+ */
+               location = 0;
 
             if (Internal != Tokens::TEOL)
              {
@@ -1036,6 +1062,23 @@ long ParserClass::statement (vector<BackRef> & fill)
 
             location = variable();
 
+            if (Internal == Tokens::OpenBrack)
+             {
+               GNT();
+
+               expression();
+
+               try { expect(Tokens::CloseBrack); }
+               catch (ParseError)
+                {
+                  expectationError("\"]\"");
+                }
+
+               lcv = 1;
+             }
+            else
+               lcv = 0;
+
             temp.opcode = Read_Op;
 
             if (bit) temp.arg = 1;
@@ -1047,7 +1090,10 @@ long ParserClass::statement (vector<BackRef> & fill)
                temp.arg = location;
             else
                temp.arg = src->dest->getValue(location);
-            temp.opcode = Store_Op;
+
+            if (lcv == 0) temp.opcode = Store_Op;
+            else temp.opcode = StoreIndirect_Op;
+
             dest->addOp(temp);
 
             break;
@@ -1295,6 +1341,29 @@ long ParserClass::statement (vector<BackRef> & fill)
              {
                expectationError("end select");
              }
+
+            break;
+
+         case Tokens::ReDim:
+            GNT();
+
+            location = variable();
+            if (location < 0)
+               temp.arg = location;
+            else
+               temp.arg = src->dest->getValue(location);
+
+            try { expect(Tokens::Comma); }
+            catch (ParseError)
+             {
+               expectationError("\",\"");
+               throw;
+             }
+
+            expression();
+
+            temp.opcode = ReDim_Op;
+            dest->addOp(temp);
 
             break;
 
@@ -1755,7 +1824,25 @@ long ParserClass::primary (void)
       case Tokens::Identifier:
          temp.arg = variable();
          if ((long) temp.arg >= 0) temp.arg = src->dest->getValue(temp.arg);
-         temp.opcode = LoadVariable_Op;
+
+           //Subscripted?
+         if (Internal == Tokens::OpenBrack)
+          {
+            GNT();
+
+            expression();
+
+            try { expect(Tokens::CloseBrack); }
+            catch (ParseError)
+             {
+               expectationError("\"]\"");
+             }
+
+            temp.opcode = LoadIndirect_Op;
+          }
+         else
+            temp.opcode = LoadVariable_Op;
+
          dest->addOp(temp);
          break;
 
@@ -1774,7 +1861,6 @@ long ParserClass::primary (void)
          catch (ParseError)
           {
             expectationError("\")\"");
-            throw;
           }
 
          break;

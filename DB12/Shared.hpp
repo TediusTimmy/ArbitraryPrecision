@@ -21,7 +21,7 @@
 
 #include <string>
 #include <vector>
-#include "../Integer.hpp"
+#include "Number.hpp"
 
 using std::vector;
 using std::string;
@@ -31,7 +31,7 @@ string stringify (const Integer &);
 Integer intify (const string &);
 
 extern vector<Integer> Constants;
-extern vector<Integer> Variables;
+extern vector<Number> Variables;
 
 extern Integer LexerTemp;
 
@@ -70,7 +70,9 @@ enum Instruction
    LogicalNot_Op,
    LoadConstant_Op,
    LoadVariable_Op,
+   LoadIndirect_Op,
    Store_Op,
+   StoreIndirect_Op,
    BranchUnconditional_Op,
    BranchConditional_Op,
    CallIndirect_Op, /* VM will never see this. */
@@ -82,7 +84,8 @@ enum Instruction
    Print_Op,
    Read_Op,
    Copy_Op,
-   Pop_Op
+   Pop_Op,
+   ReDim_Op
  };
 
 enum SymbolType

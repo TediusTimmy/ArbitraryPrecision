@@ -63,11 +63,13 @@ char * Table [] = {
    "LogicalNot_Op",
    "LoadConstant_Op",
    "LoadVariable_Op",
+   "LoadIndirect_Op",
    "Store_Op",
+   "StoreIndirect_Op",
    "BranchUnconditional_Op",
    "BranchConditional_Op",
-   "CallIndirect_Op",
-   "CallVIndirect_Op",
+   "***CallIndirect_Op***", //Emphasis added because these should never happen
+   "***CallVIndirect_Op***",
    "Call_Op",
    "CallV_Op",
    "Return_Op",
@@ -75,12 +77,13 @@ char * Table [] = {
    "Print_Op",
    "Read_Op",
    "Copy_Op",
-   "Pop_Op"
+   "Pop_Op",
+   "ReDim_Op"
 };
 #endif
 
 vector<Integer> Constants;
-vector<Integer> Variables;
+vector<Number> Variables;
 
 void interpretOps (OpTable &);
 

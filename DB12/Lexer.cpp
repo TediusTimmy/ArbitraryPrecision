@@ -568,6 +568,14 @@ void LexerClass::GetNextToken (void)
                internal = Tokens::CloseParen;
                break;
 
+            case '[':
+               internal = Tokens::OpenBrack;
+               break;
+
+            case ']':
+               internal = Tokens::CloseBrack;
+               break;
+
             case '\0':
                temp = "__EOF__";
                internal = Tokens::TEOF;

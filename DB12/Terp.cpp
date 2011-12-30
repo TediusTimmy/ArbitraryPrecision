@@ -110,13 +110,17 @@ string stringify (const Integer & src)
 
 #define VARS 24
 
-Integer strcat (const Integer & lhs, const Integer & rhs)
+Number strcat (const Number & lhs, const Number & rhs)
  {
    long shift;
+   Integer tlhs, trhs;
 
-   shift = ((lhs.msb() >> 3) + 1) << 3;
+   tlhs = lhs.getElement(1);
+   trhs = rhs.getElement(1);
 
-   return (lhs | (rhs << Integer((long long) shift)));
+   shift = ((tlhs.msb() >> 3) + 1) << 3;
+
+   return Number(tlhs | (trhs << Integer((long long) shift)));
  }
 
 void interpretOps (OpTable & opTable)
@@ -125,7 +129,7 @@ void interpretOps (OpTable & opTable)
       The run-time environment.
     */
    OpCode ThisOp;
-   std::vector<Integer> dataStack; // I need random access.
+   std::vector<Number> dataStack; // I need random access.
    std::stack<size_t> callStack;
    size_t pc, bp, i;
 
@@ -133,7 +137,7 @@ void interpretOps (OpTable & opTable)
       Temps.
     */
    string temp;
-   Integer op;
+   Number op;
 
     /*
       Stop the machine, I need to get off.
@@ -148,7 +152,7 @@ void interpretOps (OpTable & opTable)
     /*
       Useful constants.
     */
-   static const Integer one (1LL), zero (0LL);
+   static const Number one (Integer(1LL)), zero (Integer(0LL));
 
 
     /*
@@ -219,21 +223,21 @@ void interpretOps (OpTable & opTable)
          case StrictDivide_Op:
             op = dataStack.back();
             dataStack.pop_back();
-            dataStack.back() = BigInt::div(dataStack.back(), op);
+            dataStack.back() = div(dataStack.back(), op);
 
             break;
 
          case StrictModulus_Op:
             op = dataStack.back();
             dataStack.pop_back();
-            dataStack.back() = BigInt::mod(dataStack.back(), op);
+            dataStack.back() = mod(dataStack.back(), op);
 
             break;
 
          case Exponent_Op:
             op = dataStack.back();
             dataStack.pop_back();
-            dataStack.back() = BigInt::pow(dataStack.back(), op);
+            dataStack.back() = pow(dataStack.back(), op);
 
             break;
 
@@ -243,7 +247,7 @@ void interpretOps (OpTable & opTable)
             break;
 
          case AbsoluteValue_Op:
-            dataStack.back() = BigInt::abs(dataStack.back());
+            dataStack.back() = abs(dataStack.back());
 
             break;
 
@@ -360,7 +364,7 @@ void interpretOps (OpTable & opTable)
             break;
 
          case LoadConstant_Op:
-            dataStack.push_back(Constants[ThisOp.arg]);
+            dataStack.push_back(Number(Constants[ThisOp.arg]));
 
             break;
 
@@ -372,11 +376,32 @@ void interpretOps (OpTable & opTable)
 
             break;
 
+         case LoadIndirect_Op:
+            if ((long) ThisOp.arg >= 0)
+               dataStack.back() = Number(
+                  Variables[ThisOp.arg].getElement(dataStack.back()));
+            else
+               dataStack.back() = Number(
+                  dataStack[bp + ThisOp.arg].getElement(dataStack.back()));
+
+            break;
+
          case Store_Op:
             if ((long) ThisOp.arg >= 0)
                Variables[ThisOp.arg] = dataStack.back();
             else
                dataStack[bp + ThisOp.arg] = dataStack.back();
+            dataStack.pop_back();
+
+            break;
+
+         case StoreIndirect_Op:
+            op = dataStack.back();
+            dataStack.pop_back();
+            if ((long) ThisOp.arg >= 0)
+               Variables[ThisOp.arg].setElement(dataStack.back(), op);
+            else
+               dataStack[bp + ThisOp.arg].setElement(dataStack.back(), op);
             dataStack.pop_back();
 
             break;
@@ -454,10 +479,14 @@ void interpretOps (OpTable & opTable)
                 }
                else
                 {
-                  dataStack[bp - VARS + 4] = dataStack[bp + 0];
-                  dataStack[bp - VARS + 5] = dataStack[bp + 1];
-                  dataStack[bp - VARS + 6] = dataStack[bp + 2];
-                  dataStack[bp - VARS + 7] = dataStack[bp + 3];
+                  dataStack[bp - VARS + 4] =
+                     dataStack[dataStack.size() - VARS + 0];
+                  dataStack[bp - VARS + 5] =
+                     dataStack[dataStack.size() - VARS + 1];
+                  dataStack[bp - VARS + 6] =
+                     dataStack[dataStack.size() - VARS + 2];
+                  dataStack[bp - VARS + 7] =
+                     dataStack[dataStack.size() - VARS + 3];
                 }
                dataStack.resize(bp);
              }
@@ -472,12 +501,12 @@ void interpretOps (OpTable & opTable)
          case Print_Op:
             if (ThisOp.arg == 0)
              {
-               std::cout << dataStack.back().toString();
+               std::cout << dataStack.back().getElement(1).toString();
                dataStack.pop_back();
              }
             else
              {
-               std::cout << stringify(dataStack.back());
+               std::cout << stringify(dataStack.back().getElement(1));
                dataStack.pop_back();
              }
 
@@ -487,12 +516,12 @@ void interpretOps (OpTable & opTable)
             if (ThisOp.arg == 0)
              {
                std::getline(std::cin, temp);
-               dataStack.push_back(Integer(temp));
+               dataStack.push_back(Number(Integer(temp)));
              }
             else
              {
                std::getline(std::cin, temp);
-               dataStack.push_back(intify(temp));
+               dataStack.push_back(Number(intify(temp)));
              }
 
             break;
@@ -503,6 +532,15 @@ void interpretOps (OpTable & opTable)
             break;
 
          case Pop_Op:
+            dataStack.pop_back();
+
+            break;
+
+         case ReDim_Op:
+            if ((long) ThisOp.arg >= 0)
+               Variables[ThisOp.arg].resize(dataStack.back());
+            else
+               dataStack[bp + ThisOp.arg].resize(dataStack.back());
             dataStack.pop_back();
 
             break;
