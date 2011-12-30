@@ -1,0 +1,114 @@
+dim tens, ones
+
+   tens = 9
+   ones = 9
+
+   while tens + ones # 0
+      call printNumber
+      print " bottle"
+      if tens || ones # 1 then print "s"
+      print " of beer on the wall," . 10
+      call printNumber
+      print " bottle"
+      if tens || ones # 1 then print "s"
+      print " of beer, take "
+      if tens || ones # 1 then print "one" else print "it"
+      print " down, pass it around," . 10
+      if ones then
+         ones = ones - 1
+      else
+         tens = tens - 1
+         ones = 9
+      end if
+      call printNumber
+      print " bottle"
+      if tens || ones # 1 then print "s"
+      print " of beer on the wall." . 10 . 10
+   wend
+end
+
+: printNumber :
+   if tens < 2 then
+      select tens * 10 + ones
+         case 0
+            print "No more"
+         case 1
+            print "One"
+         case 2
+            print "Two"
+         case 3
+            print "Three"
+         case 4
+            print "Four"
+         case 5
+            print "Five"
+         case 6
+            print "Six"
+         case 7
+            print "Seven"
+         case 8
+            print "Eight"
+         case 9
+            print "Nine"
+         case 10
+            print "Ten"
+         case 11
+            print "Eleven"
+         case 12
+            print "Twelve"
+         case 13
+            print "Thirteen"
+         case 14
+            print "Fourteen"
+         case 15
+            print "Fifteen"
+         case 16
+            print "Sixteen"
+         case 17
+            print "Seventeen"
+         case 18
+            print "Eighteen"
+         case 19
+            print "Nineteen"
+      end select
+   else
+      select tens
+         and case 2
+            print "Twenty"
+         case 3
+            print "Thirty"
+         case 4
+            print "Fourty"
+         case 5
+            print "Fifty"
+         case 6
+            print "Sixty"
+         case 7
+            print "Seventy"
+         case 8
+            print "Eighty"
+         case 9
+            print "Ninety"
+      end select
+      select ones
+         and case 1
+            print "-one"
+         case 2
+            print "-two"
+         case 3
+            print "-three"
+         case 4
+            print "-four"
+         case 5
+            print "-five"
+         case 6
+            print "-six"
+         case 7
+            print "-seven"
+         case 8
+            print "-eight"
+         case 9
+            print "-nine"
+      end select
+   end if
+return
