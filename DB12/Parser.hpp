@@ -36,6 +36,7 @@ class ParserClass /* Syntax Analyzer */ /* Analyser for the Bri'ish */
       long label (void);
       long variable (void);
       long expression (void);
+      long boolean (void);
       long clause (void);
       long predicate (void);
       long equivalence (void);

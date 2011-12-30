@@ -19,10 +19,10 @@ dim Text,\
     Temp,\
     Input
 
-put "Enter the program: " ## 10
+print "Enter the program: " ## 10
 Temp <- 1
 while Temp
-   get Input
+   input Input
    while Input && Temp
       CI := Input & 255
       Input := Input >> 8
@@ -60,13 +60,13 @@ while CI <> 0
       case '<'
          DP = DP - 8
       case ','
-         if Input == 0 then get Input
+         if Input == 0 then input Input
          Temp := ~((Input & 255) | 256)
          Input := Input >> 8
          Data := (Data | (255 << DP)) ? (Temp << DP)
       case '.'
          Temp := (Data >> DP) & 255
-         put Temp
+         print Temp
       case '['
          if not ((Data >> DP) & 255) then
             WD <- 1

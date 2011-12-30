@@ -358,7 +358,7 @@ void LexerClass::GetNextToken (void)
                      break;
                   case '\\':
                      temp += '\\';
-                     internal = Tokens::LogAnd;
+                     internal = Tokens::AlgAnd;
                      break;
                   default:
                      UnGetNextChar();
@@ -390,7 +390,7 @@ void LexerClass::GetNextToken (void)
                 {
                   case '/':
                      temp += '/';
-                     internal = Tokens::LogOr;
+                     internal = Tokens::AlgOr;
                      break;
                   case '\n':
                      internal = Tokens::COMMENT;

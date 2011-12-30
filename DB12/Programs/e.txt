@@ -6,7 +6,7 @@
 
 dim one, iterator, sum, product, quotient, digits
 
-put "Digits of 'e' to calculate: "
+print "Digits of 'e' to calculate: "
 read digits
 
 digits := digits + 7 { for accuracy }
@@ -31,7 +31,7 @@ sum = sum / product
 
 if quotient * 2 > product then sum = sum + 1
 
-print sum / one
-put "."
-print sum % one
-put 10
+write sum / one
+print "."
+write sum % one
+print 10

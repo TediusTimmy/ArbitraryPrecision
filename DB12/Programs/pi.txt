@@ -6,7 +6,7 @@
    The arctangent subroutine only works on |arg| < 1
  *)
 
-put "Digits of pi to calculate: "
+print "Digits of pi to calculate: "
 read D
 
 D = D + 7 ; for accuracy
@@ -40,14 +40,14 @@ P = P / F
 
 if Q * 2 > F then P = P + 1
 
-print P / O
-put "."
-print P % O
-put 10
+write P / O
+print "."
+write P % O
+print 10
 
 end
 
-: arctangent
+: arctangent :
    W = A
    R = A ^ 2 / O
    P = A * R / O

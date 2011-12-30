@@ -54,9 +54,12 @@ namespace Tokens
       BoolOr,		/* | */
       BoolNot,		/* ~ */
 
-      LogAnd,		/* /\ && and */
-      LogOr,		/* \/ || or */
+      LogAnd,		/* && and then */
+      LogOr,		/* || or else */
       LogNot,		/* ! not */
+
+      AlgAnd,		/* /\ and */
+      AlgOr,		/* \/ or */
 
       ShiftLeft,	/* << */
       ShiftRight,	/* >> */
@@ -83,12 +86,12 @@ namespace Tokens
       ESelect,		/* end select */ /* Parser generated */
       Fi,		/* fi */
       For,		/* for */
-      Get,		/* get */
       If,		/* if */
+      Input,		/* input */
       Loop,		/* loop */
       Next,		/* next */
+      Or,		/* or */
       Print,		/* print */
-      Put,		/* put */
       Read,		/* read */
       Repeat,		/* repeat */
       Return,		/* return */
@@ -99,6 +102,7 @@ namespace Tokens
       Until,		/* until */
       Wend,		/* wend */
       While,		/* while */
+      Write,		/* write */
 
       TEOL,		/* \n */
       TEOF,		/* EOF */
@@ -128,14 +132,13 @@ namespace Tokens
       { "end", End },
       { "fi", Fi },
       { "for", For },
-      { "get", Get },
       { "if", If },
+      { "input", Input },
       { "loop", Loop },
       { "not", LogNot },
       { "next", Next },
-      { "or", LogOr },
+      { "or", Or },
       { "print", Print },
-      { "put", Put },
       { "read", Read },
       { "repeat", Repeat },
       { "return", Return },
@@ -145,7 +148,8 @@ namespace Tokens
       { "to", To },
       { "until", Until },
       { "wend", Wend },
-      { "while", While }
+      { "while", While },
+      { "write", Write }
     };
 
  }

@@ -5,7 +5,7 @@
 <statement_seq> =>	<statement> <nl> <statement_seq>
 			""
 
-<statement>	=>	":" <identifier> <statement>
+<statement>	=>	":" <identifier> ":"
 			<variable> <assign> <expression>
 			"if" <expression> "then" <nl> <statement_seq>
 				{"else" "if" <expression> "then" <nl>
@@ -36,9 +36,9 @@
 			"return" [<expression> {"," <expression>}3]
 			"end"
 
-			"put" <expression>
-			"get" <variable>
 			"print" <expression>
+			"input" <variable>
+			"write" <expression>
 			"read" <variable>
 			"goto" <expression> "," <expression>
 			"color"	<expression>
@@ -59,9 +59,11 @@
 
 <assign>	=>	"=" | ":=" | "<-"
 
-<expression>	=>	<clause> {("\/" | "||" | "or") <clause>}
+<expression>	=>	<boolean> {("\/" | "or" | "/\" | "and") <boolean>}
 
-<clause>	=>	<predicate> {("/\" | "&&" | "and") <predicate>}
+<boolean>	=>	<clause> {("||" | "or" "else") <clause>}
+
+<clause>	=>	<predicate> {("&&" | "and" "then") <predicate>}
 
 <predicate>	=>	<relation> { <equivalence> <relation> }
 
@@ -136,8 +138,9 @@ Notes:
       so they could be built as digraphs: '/\' and '\/'
       I have incorporated that history here
 
-   there is no short-circuit evaluation:
-      like arrays, it is on my TODO list of things to figure out
+   so, I figured out (or just bothered to include) short-circuit evaluation
+      and included the Ada versions, to boot
+      now all that is needed is arrays
 
 DUMBBASIC Function scheme:
    The main program is a function.

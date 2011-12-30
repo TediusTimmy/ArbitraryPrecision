@@ -155,6 +155,31 @@ void ParserClass::GNT (void)
                src->GetNextToken();
              }
           }
+         else if (src->Internal() == Tokens::Then)
+          {
+            Internal = Tokens::LogAnd;
+            NextSymbol = NextSymbol + " " + src->NextSymbol();
+
+            src->GetNextToken();
+          }
+         else
+          {
+            Internal = Tokens::AlgAnd;
+          }
+         break;
+
+      case Tokens::Or:
+         if (src->Internal() == Tokens::Else)
+          {
+            Internal = Tokens::LogOr;
+            NextSymbol = NextSymbol + " " + src->NextSymbol();
+
+            src->GetNextToken();
+          }
+         else
+          {
+            Internal = Tokens::AlgOr;
+          }
          break;
 
       case Tokens::Case:
@@ -415,6 +440,12 @@ long ParserClass::statement (vector<BackRef> & fill)
              }
 
 //            statement(fill);
+
+            try { expect(Tokens::Colon); }
+            catch (ParseError)
+             {
+               expectationError("\":\"");
+             }
 
             break;
 
@@ -980,10 +1011,10 @@ long ParserClass::statement (vector<BackRef> & fill)
 
             break;
 
-         case Tokens::Put:
+         case Tokens::Print:
             bit = true;
 
-         case Tokens::Print:
+         case Tokens::Write:
             GNT();
 
             expression();
@@ -997,7 +1028,7 @@ long ParserClass::statement (vector<BackRef> & fill)
 
             break;
 
-         case Tokens::Get:
+         case Tokens::Input:
             bit = true;
 
          case Tokens::Read:
@@ -1368,15 +1399,15 @@ long ParserClass::expression (void)
  {
    OpCode temp;
 
-   clause();
+   boolean();
 
-   temp.opcode = LogicalOr_Op;
-
-   while (Internal == Tokens::LogOr)
+   while ((Internal == Tokens::AlgAnd) || (Internal == Tokens::AlgOr))
     {
+      if (Internal == Tokens::AlgAnd) temp.opcode = LogicalAnd_Op;
+      else temp.opcode = LogicalOr_Op;
       GNT();
 
-      clause();
+      boolean();
 
       dest->addOp(temp);
     }
@@ -1384,22 +1415,65 @@ long ParserClass::expression (void)
    return NoError;
  }
 
+long ParserClass::boolean (void)
+ {
+   OpCode temp;
+   vector<size_t> back;
+
+   clause();
+
+   while (Internal == Tokens::LogOr)
+    {
+      GNT();
+
+      temp.opcode = Copy_Op;
+      dest->addOp(temp);
+
+      temp.opcode = LogicalNot_Op;
+      dest->addOp(temp);
+
+      back.push_back(dest->nextOp());
+      temp.opcode = BranchConditional_Op;
+      dest->addOp(temp);
+
+      clause();
+
+      temp.opcode = LogicalOr_Op;
+      dest->addOp(temp);
+    }
+
+   for (size_t i = 0; i < back.size(); i++)
+      dest->setArg(back[i], dest->nextOp());
+
+   return NoError;
+ }
+
 long ParserClass::clause (void)
  {
    OpCode temp;
+   vector<size_t> back;
 
    predicate();
-
-   temp.opcode = LogicalAnd_Op;
 
    while (Internal == Tokens::LogAnd)
     {
       GNT();
 
+      temp.opcode = Copy_Op;
+      dest->addOp(temp);
+
+      back.push_back(dest->nextOp());
+      temp.opcode = BranchConditional_Op;
+      dest->addOp(temp);
+
       predicate();
 
+      temp.opcode = LogicalAnd_Op;
       dest->addOp(temp);
     }
+
+   for (size_t i = 0; i < back.size(); i++)
+      dest->setArg(back[i], dest->nextOp());
 
    return NoError;
  }
