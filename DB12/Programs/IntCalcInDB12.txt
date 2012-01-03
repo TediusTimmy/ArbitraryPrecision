@@ -1,0 +1,202 @@
+dim NextTok, NextVal, InBuf
+
+
+   call main
+
+
+: equation :
+   call expression
+   if R = -1 then return 0, -1, 0, 0
+
+   if NextTok # ';' then
+      print "Expected: ';', found " . NextTok . 10
+      return 0, -1, 0, 0
+   fi
+
+   return Q, 0, 0, 0
+
+
+: expression :
+   call term
+   if R = -1 then return 0, -1, 0, 0
+   A = Q
+
+   while NextTok = '+' || NextTok = '-'
+      select NextTok
+         and case '+'
+            B = 1
+         case '-'
+            B = 2
+      end select
+
+      call GNT
+
+      call term
+      if R = -1 then return 0, -1, 0, 0
+
+      select B
+         and case 1
+            A = A + Q
+         case 2
+            A = A - Q
+      end select
+   wend
+
+   return A, 0, 0, 0
+
+
+: term :
+   call factor
+   if R = -1 then return 0, -1, 0, 0
+   A = Q
+
+   while NextTok = '*' || NextTok = '/' || NextTok = '%'
+      select NextTok
+         and case '*'
+            B = 1
+         case '/'
+            B = 2
+         case '%'
+            B = 3
+      end select
+
+      call GNT
+
+      call factor
+      if R = -1 then return 0, -1, 0, 0
+
+      select B
+         and case 1
+            A = A * Q
+         case 2
+            A = A / Q
+         case 3
+            A = A % Q
+      end select
+   wend
+
+   return A, 0, 0, 0
+
+
+: factor :
+   call primary
+   if R = -1 then return 0, -1, 0, 0
+   A = Q
+
+   if NextTok = '^' then
+      call GNT
+
+      call factor
+      if R = -1 then return 0, -1, 0, 0
+
+      A = A ^ Q
+   fi
+
+   return A, 0, 0, 0
+
+
+: primary :
+   select NextTok
+      and case '+'
+         call GNT
+
+         call primary
+         if R = -1 then return 0, -1, 0, 0
+         A = Q
+
+         if A < 0 then A = -A
+      case '-'
+         call GNT
+
+         call primary
+         if R = -1 then return 0, -1, 0, 0
+         A = -Q
+      case '('
+         call GNT
+
+         call expression
+         if R = -1 then return 0, -1, 0, 0
+         A = Q
+
+         call GNT
+
+         if NextTok # ')' then
+            print "Expected: ')'" . 10
+            return 0, -1, 0, 0
+         fi
+         call GNT
+      case 'I'
+         A = NextVal
+         call GNT
+      case else
+         print "Expected: primary expression, found " . NextTok . 10
+         return 0, -1, 0, 0
+   end select
+
+   return A, 0, 0, 0
+
+
+: GNT :
+   do
+      while InBuf = 0
+         input InBuf
+      wend
+      A = InBuf & 255
+      InBuf = InBuf >> 8
+   loop while A = ' ' || A = 9 || A = 10
+   select A
+      and case '+'
+      and case '-'
+      and case '*'
+      and case '/'
+      and case '%'
+      and case '^'
+      and case '('
+      and case ')'
+      and case ';'
+         NextTok = A
+      case '0'
+      and case '1'
+      and case '2'
+      and case '3'
+      and case '4'
+      and case '5'
+      and case '6'
+      and case '7'
+      and case '8'
+      and case '9'
+         NextTok = 'I'
+         NextVal = A - '0'
+         while InBuf = 0
+            input InBuf
+         wend
+         A = InBuf & 255
+         while A >= '0' && A <= '9'
+            NextVal = NextVal * 10 + A - '0'
+            InBuf = InBuf >> 8
+            while InBuf = 0
+               input InBuf
+            wend
+            A = InBuf & 255
+         wend
+      case '#'
+         end
+   end select
+
+   return
+
+
+: main :
+   do
+      call GNT
+
+      call equation
+      if R # -1 then
+         write Q
+         print 10
+      else
+         while NextTok # ';'
+            call GNT
+         wend
+      fi
+   loop

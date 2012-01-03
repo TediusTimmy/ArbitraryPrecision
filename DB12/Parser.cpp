@@ -1220,6 +1220,9 @@ long ParserClass::statement (vector<BackRef> & fill)
 
                GNT();
 
+               temp.opcode = Pop_Op;
+               dest->addOp(temp);
+
                try { expect(Tokens::TEOL); }
                catch (ParseError)
                 {
@@ -1248,13 +1251,10 @@ long ParserClass::statement (vector<BackRef> & fill)
             for (i = 0; i < (pass.size() - 1); i++)
              {
                 /*
-                  We need to copy the value, unless the next case is default.
+                  We need to copy the value, always.
                 */
-               if ((long) pass[i + 1].JumpLabel != LexerClass::NoLoc)
-                {
-                  temp.opcode = Copy_Op;
-                  dest->addOp(temp);
-                }
+               temp.opcode = Copy_Op;
+               dest->addOp(temp);
 
                 /*
                   Load the comparator.
