@@ -732,6 +732,11 @@ namespace BigInt
     }
 
 
+    /*
+      Returns -1 if overflows TO positive, ie negative overflow
+               1 if overflows TO negative, positive overflow
+               0 on no overflow
+    */
    int Float::willOverflow (long a, long b, bool sub)
     {
        /* If b is zero, all is good. */
@@ -739,11 +744,12 @@ namespace BigInt
 
       if (sub)
        {
-          /* Only handle subtraction by most negative long specially */
+          /* Only handle subtraction by most negative long specially. */
+          /* This assumes a two's complement machine. */
          if (-b == b)
           {
-             /* -x + y is good */
-            if (a <= 0) return 0;
+             /* -a + b is good */
+            if (a < 0) return 0;
              /* alternative will always overflow */
             return 1;
           }
@@ -754,13 +760,13 @@ namespace BigInt
        /* Handle a == 0 here just in case b is most negative long */
       if (a == 0) return 0;
 
-       /* -x + y is always in range */
+       /* -a + b is always in range */
       if (((a > 0) && (b < 0)) || ((a < 0) && (b > 0))) return 0;
 
-       /* x + y < x or y implies wrapped around to negative */
+       /* a + b < a or b implies wrapped around to negative */
       if (a > 0) { if ((a + b) < a) return 1; }
 
-       /* -x + -y > -x or -y implies wrapped around to positive */
+       /* -a + -b > -a or -b implies wrapped around to positive */
       else { if ((a + b) > a) return -1; }
 
        /* All good */

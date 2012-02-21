@@ -336,7 +336,17 @@ long ParserClass::program (void)
    if (Internal != Tokens::TEOF)
     {
       error = true;
-      while (Internal != Tokens::TEOF) statement_seq(base);
+      while (Internal != Tokens::TEOF)
+       {
+          /* Prevent a dumb infinite loop. */
+         if ((Internal == Tokens::Fi) || (Internal == Tokens::Wend) ||
+             (Internal == Tokens::Repeat) || (Internal == Tokens::ESelect) ||
+             (Internal == Tokens::Else) || (Internal == Tokens::Loop) ||
+             (Internal == Tokens::Next) || (Internal == Tokens::Case) ||
+             (Internal == Tokens::Choice) || (Internal == Tokens::CElse) ||
+             (Internal == Tokens::Default)) GNT();
+         statement_seq(base);
+       }
     }
 
    if (base.size() != 0)
