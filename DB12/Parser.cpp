@@ -107,7 +107,8 @@ void ParserClass::Parse (LexerClass & tokenSrc, OpTable & codeDest)
    src->dest->clear();
 #endif
 
-   std::cerr << "Total Errors: " << errorC << std::endl;
+   if (error || (errorC != 0))
+      std::cerr << "Total Errors: " << errorC << std::endl;
  }
 
  /*
@@ -285,11 +286,20 @@ long ParserClass::program (void)
     {
       GNT();
 
-      location = identifier();
+      try
+       {
+         location = identifier();
 
-      src->dest->setType(location, Variable_t);
-      src->dest->setValue(location, Variables.size());
-      Variables.push_back(Constants[0]);
+         src->dest->setType(location, Variable_t);
+         src->dest->setValue(location, Variables.size());
+         Variables.push_back(Constants[0]);
+       }
+      catch (ParseError)
+       {
+         while ((Internal != Tokens::Comma) &&
+                (Internal != Tokens::Identifier) &&
+                (Internal != Tokens::TEOL)) GNT();
+       }
 
       while ((Internal == Tokens::Comma) ||
              (Internal == Tokens::Identifier))
@@ -301,20 +311,29 @@ long ParserClass::program (void)
             errorC++;
           }
 
-         location = identifier();
+         try
+          {
+            location = identifier();
 
-         if (src->dest->getType(location) == Undefined_t)
-          {
-            src->dest->setType(location, Variable_t);
-            src->dest->setValue(location, Variables.size());
-            Variables.push_back(Constants[0]);
+            if (src->dest->getType(location) == Undefined_t)
+             {
+               src->dest->setType(location, Variable_t);
+               src->dest->setValue(location, Variables.size());
+               Variables.push_back(Constants[0]);
+             }
+            else
+             {
+               std::cerr << "Reuse of identifier \"" <<
+                  src->dest->getName(location) << "\"" << std::endl;
+               error = true;
+               errorC++;
+             }
           }
-         else
+         catch (ParseError)
           {
-            std::cerr << "Reuse of identifier \"" <<
-               src->dest->getName(location) << "\"" << std::endl;
-            error = true;
-            errorC++;
+            while ((Internal != Tokens::Comma) &&
+                   (Internal != Tokens::Identifier) &&
+                   (Internal != Tokens::TEOL)) GNT();
           }
        }
 
