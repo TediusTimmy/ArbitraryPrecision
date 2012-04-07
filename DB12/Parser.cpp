@@ -298,7 +298,8 @@ long ParserClass::program (void)
        {
          while ((Internal != Tokens::Comma) &&
                 (Internal != Tokens::Identifier) &&
-                (Internal != Tokens::TEOL)) GNT();
+                (Internal != Tokens::TEOL) && (Internal != Tokens::TEOF))
+            GNT();
        }
 
       while ((Internal == Tokens::Comma) ||
@@ -333,7 +334,8 @@ long ParserClass::program (void)
           {
             while ((Internal != Tokens::Comma) &&
                    (Internal != Tokens::Identifier) &&
-                   (Internal != Tokens::TEOL)) GNT();
+                   (Internal != Tokens::TEOL) && (Internal != Tokens::TEOF))
+               GNT();
           }
        }
 
