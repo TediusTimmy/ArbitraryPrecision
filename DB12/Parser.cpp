@@ -1,7 +1,7 @@
 /*
    This file is part of DB12.
 
-   Copyright (C) 2011 Thomas DiModica <ricinwich@yahoo.com>
+   Copyright (C) 2011, 2012 Thomas DiModica <ricinwich@yahoo.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1163,12 +1163,11 @@ long ParserClass::statement (vector<BackRef> & fill)
              }
 
              /*
-               Jump around the generated code.
+               Jump around the generated branch.
+               We don't fill the destination here to simplify code later.
              */
             location = dest->nextOp();
-
             temp.opcode = BranchUnconditional_Op;
-
             dest->addOp(temp);
 
              /*
@@ -1196,7 +1195,7 @@ long ParserClass::statement (vector<BackRef> & fill)
 
              /*
                Generate the code for each case.
-               Save the locations and constant values for later.
+               This time, we inline the case selection logic.
              */
             while ((Internal == Tokens::Case) || (Internal == Tokens::Choice))
              {
@@ -1204,25 +1203,21 @@ long ParserClass::statement (vector<BackRef> & fill)
                else bit = false;
                GNT();
 
-               lcv = src->dest->getValue(constant());
-
-               if (bit)
-                {
-                  pass.push_back(BackRef(dest->nextOp(), true, lcv, LineNo));
-                  temp.opcode = BranchUnconditional_Op;
-                  dest->addOp(temp);
-                }
-               else
-                {
-                  pass.push_back(BackRef(dest->nextOp() + 1, false,
-                     lcv, LineNo));
-                  temp.opcode = BranchUnconditional_Op;
-                  temp.arg = dest->nextOp() + 2;
-                  dest->addOp(temp);
-                }
-
-               temp.opcode = Pop_Op;
+                /*
+                  First, we generate a branch and copy the condition.
+                */
+               pass.push_back(BackRef(dest->nextOp(), bit,
+                  LexerClass::NoLoc, LineNo));
+               temp.opcode = BranchUnconditional_Op;
                dest->addOp(temp);
+
+               dest->setArg(location, dest->nextOp());
+
+               temp.opcode = Copy_Op;
+               dest->addOp(temp);
+
+                // Now, we load an expression, and eat that newline.
+               expression();
 
                try { expect(Tokens::TEOL); }
                catch (ParseError)
@@ -1230,29 +1225,39 @@ long ParserClass::statement (vector<BackRef> & fill)
                   expectationError("NewLine");
                 }
 
+                // Do the compare. Branch is on false, so test equal.
+               temp.opcode = TestEqual_Op;
+               dest->addOp(temp);
+
+                // Jump to the next case if false.
+               location = dest->nextOp();
+               temp.opcode = BranchConditional_Op;
+               dest->addOp(temp);
+
+                // Else, pop the stack and continue.
+               temp.opcode = Pop_Op;
+               dest->addOp(temp);
+
+                // If the branch was around, fill it.
+               if (pass.back().isBreak == false)
+                  dest->setArg(pass.back().CodeLoc, dest->nextOp());
+
                statement_seq(fill);
              }
+
+            bit = false; // Flag that there is no final case.
 
              /*
                There can only be one final case, and it must be at the end.
              */
             if ((Internal == Tokens::CElse) || (Internal == Tokens::Default))
              {
-               if (Internal == Tokens::CElse)
-                {
-                  pass.push_back(BackRef(dest->nextOp(), true,
-                     LexerClass::NoLoc, LineNo));
-                  temp.opcode = BranchUnconditional_Op;
-                  dest->addOp(temp);
-                }
-               else
-                  pass.push_back(BackRef(dest->nextOp(), false,
-                     LexerClass::NoLoc, LineNo));
+               pass.push_back(BackRef(dest->nextOp(),
+                  (Internal == Tokens::CElse), LexerClass::NoLoc, LineNo));
+               temp.opcode = BranchUnconditional_Op;
+               dest->addOp(temp);
 
                GNT();
-
-               temp.opcode = Pop_Op;
-               dest->addOp(temp);
 
                try { expect(Tokens::TEOL); }
                catch (ParseError)
@@ -1260,103 +1265,37 @@ long ParserClass::statement (vector<BackRef> & fill)
                   expectationError("NewLine");
                 }
 
+                // Fill the branch, and pop the stack.
+               dest->setArg(location, dest->nextOp());
+
+               temp.opcode = Pop_Op;
+               dest->addOp(temp);
+
+                // If the branch was around, fill it.
+               if (pass.back().isBreak == false)
+                  dest->setArg(pass.back().CodeLoc, dest->nextOp());
+
                statement_seq(fill);
+
+               bit = true; // There was a final case after all.
              }
 
-             /*
-               Jump around the decision code.
-             */
-            location2 = dest->nextOp();
-
-            temp.opcode = BranchUnconditional_Op;
-            dest->addOp(temp);
-
-             /*
-               Fill the jump to the start of our decision code.
-             */
-            dest->setArg(location, dest->nextOp());
-
-             /*
-               For each case:
-             */
-            for (i = 0; i < (pass.size() - 1); i++)
+             // If there was no final case, the last branch jumps here.
+            if (bit == false)
              {
-                /*
-                  We need to copy the value, always.
-                */
-               temp.opcode = Copy_Op;
+                // Jump over the pop, if coming from the previous case.
+               temp.opcode = BranchUnconditional_Op;
+               temp.arg = dest->nextOp() + 2;
                dest->addOp(temp);
-
-                /*
-                  Load the comparator.
-                */
-               temp.opcode = LoadConstant_Op;
-               temp.arg = pass[i].JumpLabel;
-               dest->addOp(temp);
-
-                /*
-                  Test if NOT equal, as conditional branch branches on FALSE.
-                */
-               temp.opcode = TestNotEqual_Op;
-               dest->addOp(temp);
-
-                /*
-                  Generate the branch.
-                  If the case was breaking, mind the branch.
-                */
-               temp.opcode = BranchConditional_Op;
-               temp.arg = pass[i].CodeLoc;
-               if (pass[i].isBreak) temp.arg++;
-               dest->addOp(temp);
-             }
-
-             /*
-               Treat the last case specially.
-             */
-            if ((pass.size() != 0) &&
-                ((long) pass[i].JumpLabel != LexerClass::NoLoc))
-             { //Normal last case
-                /*
-                  We STILL need to copy the value.
-                */
-               temp.opcode = Copy_Op;
-               dest->addOp(temp);
-
-               temp.opcode = LoadConstant_Op;
-               temp.arg = pass[i].JumpLabel;
-               dest->addOp(temp);
-
-               temp.opcode = TestNotEqual_Op;
-               dest->addOp(temp);
-
-               temp.opcode = BranchConditional_Op;
-               temp.arg = pass[i].CodeLoc;
-               if (pass[i].isBreak) temp.arg++;
-               dest->addOp(temp);
-
-                /*
-                  We finally remove the value from the stack.
-                  This code has control pass-by if there
-                  are no matching cases and is no default case.
-                */
+                // And branch to the pop.
+               dest->setArg(location, dest->nextOp());
+                // And we eat the control value.
                temp.opcode = Pop_Op;
                dest->addOp(temp);
              }
-            else if (pass.size() != 0)
-             { //Default case
-               temp.opcode = BranchUnconditional_Op;
-               temp.arg = pass[i].CodeLoc;
-               if (pass[i].isBreak) temp.arg++;
-               dest->addOp(temp);
-             }
 
              /*
-               Fill the branch out
-             */
-            dest->setArg(location2, dest->nextOp());
-
-             /*
-               Fill the internal branches.
+               Fill the rest of the branches out or the select.
              */
             for (i = 0; i < pass.size(); i++)
              {

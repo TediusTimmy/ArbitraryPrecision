@@ -20,15 +20,15 @@
 				("repeat" | "end until")
 			"do" <nl> <statement_seq> "loop"
 				[("while" | "until") <expression>]
-			"break" <label>
-			"continue" <label>
+			"break" [<label>]
+			"continue" [<label>]
 			"for" <variable> <assign> <expression>
 				("to" | "downto") <expression>
 				["step" <expression>] <nl>
 				<statement_seq>
 				("next" | "end for")
 			"select" <expression> <nl> {["and"]
-				"case" <constant> <nl> <statement_seq>}
+				"case" <expression> <nl> <statement_seq>}
 				[["and"] "case" "else" <nl> <statement_seq>]
 				"end select"
 			"call" <identifier>
@@ -123,11 +123,7 @@ Notes:
       the CASEs are breaking, use "and case" to make them non-breaking
          that is the word "and" and not "&&" or "/\"
          this is a better solution than adding "choice" and "default"
-      also, like C and unlike BASIC,
-         SELECT requires that the cases are constants :
-         the implementation was easier
-      if ranges or variables are needed, use the if construct
-         which is nicely expanded, if I do say so myself
+      SELECT now allows cases to be expressions
    continue in a DO ... LOOP works as in C/Java and not as in DUMBBASIC 11
    identifiers MUST be two characters or more
       one character identifiers are local variables
