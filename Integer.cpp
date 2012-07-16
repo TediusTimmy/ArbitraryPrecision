@@ -529,7 +529,7 @@ namespace BigInt
         {
           Digits -= (Unit)1;
         }
-       return (*this);
+       return ret;
      }
 
 
