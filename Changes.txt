@@ -115,3 +115,9 @@ Fixed some instances where -0 could have been generated.
 Changed BitField::operator>>= to do less work, so it should be faster.
 
 2011/12/22
+
+Fixed a silly mistake in Integer::operator--(int).
+It was still the pre-decrement operation.
+
+2012/07/16
+
