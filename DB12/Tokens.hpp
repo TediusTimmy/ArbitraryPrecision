@@ -116,7 +116,7 @@ namespace Tokens
 
    struct KeyWordType
     {
-      char * Word;
+      const char * Word;
       TokenType Token;
     };
 

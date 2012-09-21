@@ -22,7 +22,7 @@
 				[("while" | "until") <expression>]
 			"break" [<label>]
 			"continue" [<label>]
-			"for" <variable> <assign> <expression>
+			"for" <location> <assign> <expression>
 				("to" | "downto") <expression>
 				["step" <expression>] <nl>
 				<statement_seq>

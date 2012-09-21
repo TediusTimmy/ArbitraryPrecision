@@ -33,7 +33,7 @@
 #include "Parser.hpp"
 
 #ifdef DEBUG
-char * Table [] = {
+const char * Table [] = {
    "No_Op",
    "StrCat_Op",
    "Add_Op",
@@ -111,8 +111,11 @@ int main (int argc, char ** argv)
       for (size_t i = 0; i < Gojira.size(); i++)
        {
          std::cout << i << " : " << Gojira.getName(i) <<
-            "\t" << Gojira.getValue(i) <<
-            std::endl;
+            "\t" << Gojira.getValue(i);
+         if (Gojira.getType(i) == Constant_t)
+            std::cout << " : " << Constants[i].toString() << std::endl;
+         else
+            std::cout << std::endl;
        }
       for (size_t i = 0; i < Tokyo.nextOp(); i++)
        {

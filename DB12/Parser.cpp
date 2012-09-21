@@ -23,6 +23,7 @@
 const int ParserClass::NoError = 0;
 const int ParserClass::SymZero = 0;
 const int ParserClass::SymOne = 1;
+const long ParserClass::IndOffset = 0x40000000;
 
 
  /*
@@ -418,9 +419,43 @@ long ParserClass::statement_seq (vector<BackRef> & fill)
    return NoError;
  }
 
+void ParserClass::fixOpCode (OpCode & me, Instruction Indirect, Instruction Direct)
+ {
+   if ((long) me.arg >= 0)
+    {
+      if ((long) me.arg >= IndOffset)
+       {
+         me.arg -= IndOffset;
+         me.opcode = Indirect;
+       }
+      else
+         me.opcode = Direct;
+    }
+   else
+    {
+      if ((long) me.arg < -IndOffset)
+       {
+         me.arg += IndOffset;
+         me.opcode = Indirect;
+       }
+      else
+         me.opcode = Direct;
+    }
+   return;
+ }
+
+static void copyCode (OpTable * dest, long start, long upto)
+ {
+   while (start < upto)
+    {
+      dest->addOp(dest->getOp((size_t)start));
+      start++;
+    }
+ }
+
 long ParserClass::statement (vector<BackRef> & fill)
  {
-   long location, location2, lcv, downto, upto, tiptop;
+   long location, location2, lcv, lcve, downto, upto, tiptop;
    OpCode temp;
    bool bit = false;
    vector<BackRef> pass;
@@ -482,28 +517,10 @@ long ParserClass::statement (vector<BackRef> & fill)
             break;
 
          case Tokens::Identifier: //Assignment Statement
-            location = variable();
-            if (location < 0)
-               temp.arg = location;
-            else
-               temp.arg = src->dest->getValue(location);
+            location = place();
+            temp.arg = location;
 
-            if (Internal == Tokens::OpenBrack)
-             {
-               GNT();
-
-               expression();
-
-               try { expect(Tokens::CloseBrack); }
-               catch (ParseError)
-                {
-                  expectationError("\"]\"");
-                }
-
-               temp.opcode = StoreIndirect_Op;
-             }
-            else
-               temp.opcode = Store_Op;
+            fixOpCode(temp, StoreIndirect_Op, Store_Op);
 
             if ((Internal != Tokens::Assign) &&
                 (Internal != Tokens::Equals))
@@ -809,9 +826,16 @@ long ParserClass::statement (vector<BackRef> & fill)
 
             tiptop = dest->nextOp();
 
+             //We need to jump over the first generation of the lcv code
+            temp.opcode = BranchUnconditional_Op;
+            dest->addOp(temp);
+
              // lcv - loop control variable
-            lcv = variable();
-            if (lcv >= 0) lcv = src->dest->getValue(lcv);
+            lcv = place();
+             // lcve - end loop control variable code
+             // tiptop + 1 is the begining
+            lcve = dest->nextOp();
+            dest->setArg(tiptop, dest->nextOp());
 
             if ((Internal != Tokens::Assign) &&
                 (Internal != Tokens::Equals))
@@ -822,10 +846,12 @@ long ParserClass::statement (vector<BackRef> & fill)
              }
             GNT();
 
+             // The indirection code occurs first.
+            copyCode(dest, tiptop + 1, lcve);
             expression();
 
             temp.arg = lcv;
-            temp.opcode = Store_Op;
+            fixOpCode(temp, StoreIndirect_Op, Store_Op);
             dest->addOp(temp);
 
             if ((Internal != Tokens::To) &&
@@ -879,8 +905,9 @@ long ParserClass::statement (vector<BackRef> & fill)
             temp.opcode = BranchUnconditional_Op;
             dest->addOp(temp);
 
+            copyCode(dest, tiptop + 1, lcve);
             temp.arg = lcv;
-            temp.opcode = LoadVariable_Op;
+            fixOpCode(temp, LoadIndirect_Op, LoadVariable_Op);
             dest->addOp(temp);
 
              // Do comparison and branch
@@ -913,8 +940,16 @@ long ParserClass::statement (vector<BackRef> & fill)
                 }
              }
 
+             // First : copy the code for the store
+            copyCode(dest, tiptop + 1, lcve);
+             // Next: copy the result for the load
+            if ((tiptop + 1) != lcve) // But only if code was generated.
+             {
+               temp.opcode = Copy_Op;
+               dest->addOp(temp);
+             }
             temp.arg = lcv;
-            temp.opcode = LoadVariable_Op;
+            fixOpCode(temp, LoadIndirect_Op, LoadVariable_Op);
             dest->addOp(temp);
 
              // Get the step.
@@ -930,7 +965,7 @@ long ParserClass::statement (vector<BackRef> & fill)
             dest->addOp(temp);
 
             temp.arg = lcv;
-            temp.opcode = Store_Op;
+            fixOpCode(temp, StoreIndirect_Op, Store_Op);
             dest->addOp(temp);
 
             temp.arg = location;
@@ -1792,27 +1827,8 @@ long ParserClass::primary (void)
          break;
 
       case Tokens::Identifier:
-         temp.arg = variable();
-         if ((long) temp.arg >= 0) temp.arg = src->dest->getValue(temp.arg);
-
-           //Subscripted?
-         if (Internal == Tokens::OpenBrack)
-          {
-            GNT();
-
-            expression();
-
-            try { expect(Tokens::CloseBrack); }
-            catch (ParseError)
-             {
-               expectationError("\"]\"");
-             }
-
-            temp.opcode = LoadIndirect_Op;
-          }
-         else
-            temp.opcode = LoadVariable_Op;
-
+         temp.arg = place();
+         fixOpCode(temp, LoadIndirect_Op, LoadVariable_Op);
          dest->addOp(temp);
          break;
 
@@ -1877,4 +1893,32 @@ long ParserClass::identifier (void)
     }
 
    return location;
+ }
+
+long ParserClass::place (void)
+ {
+   long temp;
+   temp = variable();
+   if ((long) temp >= 0) temp = src->dest->getValue(temp);
+
+     //Subscripted?
+   if (Internal == Tokens::OpenBrack)
+    {
+      GNT();
+
+      expression();
+
+      try { expect(Tokens::CloseBrack); }
+      catch (ParseError)
+       {
+         expectationError("\"]\"");
+       }
+
+      if (temp < 0)
+         temp -= IndOffset;
+      else
+         temp += IndOffset;
+    }
+
+   return temp;
  }

@@ -1,7 +1,7 @@
 /*
    This file is part of DB12.
 
-   Copyright (C) 2011 Thomas DiModica <ricinwich@yahoo.com>
+   Copyright (C) 2011, 2012 Thomas DiModica <ricinwich@yahoo.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ class ParserClass /* Syntax Analyzer */ /* Analyser for the Bri'ish */
       long term (void);
       long factor (void);
       long primary (void);
+      long place (void);
       long identifier (void);
       long constant (void);
 
@@ -85,6 +86,14 @@ class ParserClass /* Syntax Analyzer */ /* Analyser for the Bri'ish */
        */
       const static int SymZero;
       const static int SymOne;
+
+       /*
+         This constant limits the number of variables available to a program,
+         as it is the offset added to a variable location to indicate that it
+         should be loaded indirectly.
+       */
+      const static long IndOffset;
+      void fixOpCode (OpCode &, Instruction, Instruction);
 
        /*
          Exception classes.
