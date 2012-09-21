@@ -826,16 +826,18 @@ long ParserClass::statement (vector<BackRef> & fill)
 
             tiptop = dest->nextOp();
 
-             //We need to jump over the first generation of the lcv code
-            temp.opcode = BranchUnconditional_Op;
-            dest->addOp(temp);
-
              // lcv - loop control variable
             lcv = place();
              // lcve - end loop control variable code
-             // tiptop + 1 is the begining
+             // tiptop is the begining
             lcve = dest->nextOp();
-            dest->setArg(tiptop, dest->nextOp());
+
+             // Copy the result for the load in the comparison
+            if (tiptop != lcve) // But only if code was generated
+             {
+               temp.opcode = Copy_Op;
+               dest->addOp(temp);
+             }
 
             if ((Internal != Tokens::Assign) &&
                 (Internal != Tokens::Equals))
@@ -846,12 +848,15 @@ long ParserClass::statement (vector<BackRef> & fill)
              }
             GNT();
 
-             // The indirection code occurs first.
-            copyCode(dest, tiptop + 1, lcve);
             expression();
 
             temp.arg = lcv;
             fixOpCode(temp, StoreIndirect_Op, Store_Op);
+            dest->addOp(temp);
+
+             // Now, reload it for the comparison
+            temp.arg = lcv;
+            fixOpCode(temp, LoadIndirect_Op, LoadVariable_Op);
             dest->addOp(temp);
 
             if ((Internal != Tokens::To) &&
@@ -905,14 +910,9 @@ long ParserClass::statement (vector<BackRef> & fill)
             temp.opcode = BranchUnconditional_Op;
             dest->addOp(temp);
 
-            copyCode(dest, tiptop + 1, lcve);
-            temp.arg = lcv;
-            fixOpCode(temp, LoadIndirect_Op, LoadVariable_Op);
-            dest->addOp(temp);
-
              // Do comparison and branch
-            if (bit) temp.opcode = TestLessThanOrEqual_Op;
-            else temp.opcode = TestGreaterThanOrEqual_Op;
+            if (bit) temp.opcode = TestGreaterThanOrEqual_Op;
+            else temp.opcode = TestLessThanOrEqual_Op;
 
             dest->addOp(temp);
 
@@ -941,11 +941,12 @@ long ParserClass::statement (vector<BackRef> & fill)
              }
 
              // First : copy the code for the store
-            copyCode(dest, tiptop + 1, lcve);
-             // Next: copy the result for the load
-            if ((tiptop + 1) != lcve) // But only if code was generated.
+            copyCode(dest, tiptop, lcve);
+             // Next: copy the result twice for the load and comparison
+            if (tiptop != lcve) // But only if code was generated.
              {
                temp.opcode = Copy_Op;
+               dest->addOp(temp);
                dest->addOp(temp);
              }
             temp.arg = lcv;
@@ -966,6 +967,11 @@ long ParserClass::statement (vector<BackRef> & fill)
 
             temp.arg = lcv;
             fixOpCode(temp, StoreIndirect_Op, Store_Op);
+            dest->addOp(temp);
+
+             // Load it right back for comparison
+            temp.arg = lcv;
+            fixOpCode(temp, LoadIndirect_Op, LoadVariable_Op);
             dest->addOp(temp);
 
             temp.arg = location;
