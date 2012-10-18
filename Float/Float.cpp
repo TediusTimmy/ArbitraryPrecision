@@ -764,10 +764,15 @@ namespace BigInt
       if (((a > 0) && (b < 0)) || ((a < 0) && (b > 0))) return 0;
 
        /* a + b < a or b implies wrapped around to negative */
-      if (a > 0) { if ((a + b) < a) return 1; }
+       /* This ugly casting happens because C/C++ compilers are allowed
+          to assume that overflow NEVER occurs with signed arithmetic.
+          So, the code may be compiled wrong. */
+      if (a > 0)
+         { if ((long)((unsigned long)a + (unsigned long)b) < a) return 1; }
 
        /* -a + -b > -a or -b implies wrapped around to positive */
-      else { if ((a + b) > a) return -1; }
+      else
+         { if ((long)((unsigned long)a + (unsigned long)b) > a) return -1; }
 
        /* All good */
       return 0;
