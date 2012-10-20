@@ -401,8 +401,7 @@ namespace BigInt
          //Zero handling: return a zero with the correct sign
       if (lhs.isZero() || rhs.isZero()) return temp;
 
-         //Do the multiply
-      temp.Data = lhs.Data * rhs.Data;
+         //Do we need to do the multiply?
       switch (Float::willOverflow(lhs.Exponent, rhs.Exponent, false))
        {
          case 1:
@@ -418,23 +417,26 @@ namespace BigInt
 
          default:
             temp.Exponent = lhs.Exponent + rhs.Exponent;
-       }
 
-         //Normalize
-      if (temp.Data >= upper)
-       {
-         temp.Data.setPrecision(temp.Data.getPrecision() + 1);
-         switch (Float::willOverflow(temp.Exponent, 1, false))
-          {
-            case 1:
-               temp.Infinity = true;
-               temp.Exponent = 0;
-               temp.Data = Fixed((long long) 0);
-               break;
+               //Do the multiply
+            temp.Data = lhs.Data * rhs.Data;
 
-            default:
-               temp.Exponent++;
-          }
+               //Normalize
+            if (temp.Data >= upper)
+             {
+               temp.Data.setPrecision(temp.Data.getPrecision() + 1);
+               switch (Float::willOverflow(temp.Exponent, 1, false))
+                {
+                  case 1:
+                     temp.Infinity = true;
+                     temp.Exponent = 0;
+                     temp.Data = Fixed((long long) 0);
+                     break;
+
+                  default:
+                     temp.Exponent++;
+                }
+             }
        }
 
       return temp;
@@ -473,10 +475,7 @@ namespace BigInt
          //Return a zero
       if (lhs.isZero() || rhs.isInfinity()) return temp;
 
-         //Do the divide
-         //The divide should generate enough extra digits
-         //to do accurate rounding.
-      temp.Data = lhs.Data / rhs.Data;
+         //Do we need to do the divide?
       switch (Float::willOverflow(lhs.Exponent, rhs.Exponent, true))
        {
          case 1:
@@ -492,22 +491,27 @@ namespace BigInt
 
          default:
             temp.Exponent = lhs.Exponent - rhs.Exponent;
-       }
 
-         //Normalize
-      if (temp.Data < lower)
-       {
-         temp.Data.setPrecision(temp.Data.getPrecision() - 1);
-         switch (Float::willOverflow(temp.Exponent, -1, false))
-          {
-            case -1:
-               temp.Exponent = 0;
-               temp.Data = Fixed((long long) 0);
-               break;
+               //Do the divide
+               //The divide should generate enough extra digits
+               //to do accurate rounding.
+            temp.Data = lhs.Data / rhs.Data;
 
-            default:
-               temp.Exponent--;
-          }
+               //Normalize
+            if (temp.Data < lower)
+             {
+               temp.Data.setPrecision(temp.Data.getPrecision() - 1);
+               switch (Float::willOverflow(temp.Exponent, -1, false))
+                {
+                  case -1:
+                     temp.Exponent = 0;
+                     temp.Data = Fixed((long long) 0);
+                     break;
+
+                  default:
+                     temp.Exponent--;
+                }
+             }
        }
 
       return temp;
