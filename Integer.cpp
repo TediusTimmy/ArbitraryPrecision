@@ -1040,17 +1040,17 @@ namespace BigInt
 
    void matrixMult (Integer lhs[4], const Integer rhs[4])
     {
-      Integer result[4];
+      Integer result[3];
 
       result[0] = lhs[0] * rhs[0] + lhs[1] * rhs[2];
       result[1] = lhs[0] * rhs[1] + lhs[1] * rhs[3];
-      result[2] = lhs[2] * rhs[0] + lhs[3] * rhs[2];
-      result[3] = lhs[2] * rhs[1] + lhs[3] * rhs[3];
+//      result[2] = lhs[2] * rhs[0] + lhs[3] * rhs[2];
+      result[2] = lhs[2] * rhs[1] + lhs[3] * rhs[3];
 
       lhs[0] = result[0];
       lhs[1] = result[1];
-      lhs[2] = result[2];
-      lhs[3] = result[3];
+      lhs[2] = result[1];
+      lhs[3] = result[2];
     }
 
    Integer fib (const Integer & number)
