@@ -937,7 +937,7 @@ namespace BigInt
          nearest integer whose square is less than or equal to the target
          number.
        */
-      if ((temp * temp) > src) temp--;
+      if ((temp * temp) > src) --temp;
 
       return temp;
     }
@@ -953,7 +953,7 @@ namespace BigInt
 
       if (ofThis.isSigned()) return Integer((Unit) 0);
 
-      while (!(!i)) product *= i--;
+      while (!(!i)) { product *= i; --i; }
 
       return product;
     }
@@ -965,7 +965,7 @@ namespace BigInt
       if (items.isSigned() || taken.isSigned() || limit.isSigned())
          return Integer((Unit) 0);
 
-      while (i > limit) product *= i--;
+      while (i > limit) { product *= i; --i; }
 
       return product;
     }
@@ -1038,23 +1038,52 @@ namespace BigInt
       return result;
     }
 
+   void matrixMult (Integer lhs[4], const Integer rhs[4])
+    {
+      Integer result[4];
+
+      result[0] = lhs[0] * rhs[0] + lhs[1] * rhs[2];
+      result[1] = lhs[0] * rhs[1] + lhs[1] * rhs[3];
+      result[2] = lhs[2] * rhs[0] + lhs[3] * rhs[2];
+      result[3] = lhs[2] * rhs[1] + lhs[3] * rhs[3];
+
+      lhs[0] = result[0];
+      lhs[1] = result[1];
+      lhs[2] = result[2];
+      lhs[3] = result[3];
+    }
+
    Integer fib (const Integer & number)
     {
-      Integer curr, prev ((Unit) 1), last, iter (number);
+      Integer result[4], one[4], temp (number);
 
-      if (number.isZero() || number.isSigned()) return Integer ((Unit) 0);
+      if (number.isSigned() || number.isZero()) return Integer((Unit) 0);
 
-      while (1)
+      result[0] = Integer((Unit) 1);
+      result[3] = result[0];
+
+      one[0] = result[0];
+      one[1] = result[0];
+      one[2] = result[0];
+
+      --temp;
+      if (temp.isZero()) return result[0];
+
+      for (long i = temp.msb(); /* I moved this down. */ ; --i)
        {
-         if ((iter--).isZero()) return prev;
-         curr = prev + last;
+         if (temp.getDigit(i / BitField::bits)
+              & (1 << (i % BitField::bits))) matrixMult(result, one);
 
-         if ((iter--).isZero()) return curr;
-         last = curr + prev;
+          /*
+            We should get a speed boost putting this test here,
+            as we aren't doing one too many multiplications.
+          */
+         if (i == 0) break;
 
-         if ((iter--).isZero()) return last;
-         prev = last + curr;
+         matrixMult(result, result);
        }
+
+      return result[0];
     }
 
     /*
@@ -1086,8 +1115,8 @@ namespace BigInt
        */
       if (remainder.isSigned() && !(rhs.isZero()))
        {
-         if (lhs.isSigned() != rhs.isSigned()) result--;
-         else result++;
+         if (lhs.isSigned() != rhs.isSigned()) --result;
+         else ++result;
        }
 
       return result;
@@ -1129,8 +1158,8 @@ namespace BigInt
 
       if (rem.isSigned() && !(Rhs.isZero()))
        {
-         if (lhsS != Rhs.isSigned()) quot--;
-         else quot++;
+         if (lhsS != Rhs.isSigned()) --quot;
+         else ++quot;
        }
 
       if (rem.isSigned())
