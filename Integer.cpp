@@ -1038,33 +1038,30 @@ namespace BigInt
       return result;
     }
 
-   void matrixMult (Integer lhs[4], const Integer rhs[4])
+   void fibMult (Integer lhs[3], const Integer rhs[3])
     {
       Integer result[3];
 
-      result[0] = lhs[0] * rhs[0] + lhs[1] * rhs[2];
-      result[1] = lhs[0] * rhs[1] + lhs[1] * rhs[3];
-//      result[2] = lhs[2] * rhs[0] + lhs[3] * rhs[2];
-      result[2] = lhs[2] * rhs[1] + lhs[3] * rhs[3];
+      result[0] = lhs[0] * rhs[0] + lhs[1] * rhs[1];
+      result[1] = lhs[0] * rhs[1] + lhs[1] * rhs[2];
+      result[2] = lhs[1] * rhs[1] + lhs[2] * rhs[2];
 
       lhs[0] = result[0];
       lhs[1] = result[1];
-      lhs[2] = result[1];
-      lhs[3] = result[2];
+      lhs[2] = result[2];
     }
 
    Integer fib (const Integer & number)
     {
-      Integer result[4], one[4], temp (number);
+      Integer result[3], one[3], temp (number);
 
       if (number.isSigned() || number.isZero()) return Integer((Unit) 0);
 
       result[0] = Integer((Unit) 1);
-      result[3] = result[0];
+      result[2] = result[0];
 
       one[0] = result[0];
       one[1] = result[0];
-      one[2] = result[0];
 
       --temp;
       if (temp.isZero()) return result[0];
@@ -1072,7 +1069,7 @@ namespace BigInt
       for (long i = temp.msb(); /* I moved this down. */ ; --i)
        {
          if (temp.getDigit(i / BitField::bits)
-              & (1 << (i % BitField::bits))) matrixMult(result, one);
+              & (1 << (i % BitField::bits))) fibMult(result, one);
 
           /*
             We should get a speed boost putting this test here,
@@ -1080,7 +1077,7 @@ namespace BigInt
           */
          if (i == 0) break;
 
-         matrixMult(result, result);
+         fibMult(result, result);
        }
 
       return result[0];
