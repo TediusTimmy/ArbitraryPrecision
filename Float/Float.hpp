@@ -76,7 +76,7 @@ namespace BigInt
             { return Data.setPrecision(newPrecision); }
 
          void changePrecision (unsigned long newPrecision)
-            { Data.setSign(Sign); Data.changePrecision(newPrecision); Data.setSign(false); }
+          { Data.setSign(Sign);Data.changePrecision(newPrecision);Data.abs(); }
 
          long exponent (void) const { return Exponent; }
 
