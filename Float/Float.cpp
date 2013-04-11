@@ -169,8 +169,8 @@ namespace BigInt
       unsigned long Precision;
       Precision = Data.getPrecision();
       Data = src.Data;
-      Data.changePrecision(Precision);
       Sign = src.Sign;
+      changePrecision(Precision);
       Exponent = src.Exponent;
       Infinity = src.Infinity;
       NaN = src.NaN;
