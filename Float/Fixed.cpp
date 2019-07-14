@@ -154,7 +154,7 @@ namespace BigInt
        {
          temp = *this;
          temp.changePrecision(to.Digits);
-         return temp.Data.compare(Data);
+         return temp.Data.compare(to.Data);
        }
 
       return Data.compare(to.Data);

@@ -340,8 +340,7 @@ namespace BigInt
             res += temp;
             break;
          case 2:
-            temp = Float(Integer((long long) opp.Exponent).toString());
-            temp += Float("5E-1");
+            temp = Float(Integer((long long) opp.Exponent).toString() + ".5");
             one = M_LN10;
 
             temp *= one;
