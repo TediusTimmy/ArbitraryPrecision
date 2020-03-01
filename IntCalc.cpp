@@ -336,6 +336,7 @@ int main (int argc, char ** argv)
                   else Token = '~';
                 }
 
+[[fallthrough]];
 FlowThrough:    // Flow through to generalized operation.
 
             case  2: // These all flow through, as operation
