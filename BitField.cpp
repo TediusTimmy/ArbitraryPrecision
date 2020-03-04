@@ -67,16 +67,16 @@ namespace BigInt
 
 
    BitField::BitHolder::BitHolder () :
-      Length (0), Size (0) { }
+      Data (NULL), Length (0), Size (0), Refs(0) { }
 
    BitField::BitHolder::BitHolder (const BitHolder & src, long extra) :
-      Length (0), Size (0)
+      Data (NULL), Length (0), Size (0), Refs (1)
     {
-         Data.reset(new Unit [src.Length + extra]);
+         Data = new Unit [src.Length + extra];
          Length = src.Length;
          Size = src.Length + extra;
 
-         std::memcpy(Data.get(), src.Data.get(), Length * sizeof(Unit));
+         std::memcpy(Data, src.Data, Length * sizeof(Unit));
     }
 
    BitField::BitHolder::~BitHolder ()
@@ -85,36 +85,41 @@ namespace BigInt
          Alot of finalization is added before deallocation in case we need
          to hunt down bugs.
        */
-      Data.reset(nullptr);
+      if (Data != NULL) delete Data;
+
+      Data = NULL;
       Length = 0;
       Size = 0;
+      Refs = 0;
     }
 
 
 
-   BitField::BitField () : Zero (true) { }
+   BitField::BitField () : Data (NULL), Zero (true) { }
 
-   BitField::BitField (Unit src) : Zero (true)
+   BitField::BitField (Unit src) : Data (NULL), Zero (true)
     {
       if (src != 0)
        {
          Zero = false;
-         Data = std::make_shared<BitHolder>();
+         Data = new BitHolder;
 
-         Data->Data.reset(new Unit [1]);
+         Data->Data = new Unit [1];
          Data->Length = 1;
          Data->Size = 1;
+         Data->Refs = 1;
 
          Data->Data[0] = src;
        }
     }
 
    BitField::BitField (const BitField & src) :
-      Zero (src.Zero)
+       Data (NULL), Zero (src.Zero)
     {
       if (!src.isZero())
        {
          Data = src.Data;
+         src.Data->Refs++;
        }
     }
 
@@ -124,7 +129,10 @@ namespace BigInt
     {
       if (!Zero)
        {
-         Data.reset();
+         Data->Refs--;
+         if (Data->Refs == 0) delete Data;
+
+         Data = NULL;
          Zero = true;
        }
     }
@@ -140,7 +148,7 @@ namespace BigInt
       int shiftAmount = amount % bits;
       int rightShift = bits - shiftAmount;
       long newLength;
-      Unit carry = 0, oldCarry, * newData = nullptr;
+      Unit carry = 0, oldCarry, * newData = NULL;
 
        /* Are we essentially doing nothing? */
       if (Zero || (amount == 0)) return;
@@ -149,9 +157,10 @@ namespace BigInt
          As BitField is composed of only mutator methods, one of the first
          things we do is make sure we "own" the Data that we are mutating.
        */
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data, addedUnits + 1);
+         Data->Refs--;
+         Data = new BitHolder (*Data, addedUnits + 1);
        }
 
        /*
@@ -175,13 +184,14 @@ namespace BigInt
           {
             newData = new Unit [newLength];
 
-            std::memcpy(newData + addedUnits, Data->Data.get(),
+            std::memcpy(newData + addedUnits, Data->Data,
                Data->Length * sizeof(Unit));
             if (addedUnits != 0)
                std::memset(newData, '\0', addedUnits * sizeof(Unit));
 
-            Data->Data.reset(newData);
-            newData = nullptr;
+            delete [] Data->Data;
+            Data->Data = newData;
+            newData = NULL;
 
             Data->Size = newLength;
           }
@@ -189,9 +199,9 @@ namespace BigInt
           {
             if (addedUnits != 0)
              {
-               std::memmove(Data->Data.get() + addedUnits, Data->Data.get(),
+               std::memmove(Data->Data + addedUnits, Data->Data,
                   Data->Length * sizeof(Unit));
-               std::memset(Data->Data.get(), '\0', addedUnits * sizeof(Unit));
+               std::memset(Data->Data, '\0', addedUnits * sizeof(Unit));
              }
           }
 
@@ -212,20 +222,24 @@ namespace BigInt
        /* Are we just making ourself Zero? */
       if (lessUnits >= Data->Length)
        {
-         Data.reset();
+         Data->Refs--;
+         if (Data->Refs == 0) delete Data;
+
+         Data = NULL;
          Zero = true;
          return;
        }
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
       if (lessUnits != 0)
        {
          Data->Length -= lessUnits;
-         std::memmove(Data->Data.get(), Data->Data.get() + lessUnits,
+         std::memmove(Data->Data, Data->Data + lessUnits,
             Data->Length * sizeof(Unit));
        }
 
@@ -244,7 +258,9 @@ namespace BigInt
          Data->Length--;
          if (Data->Length == 0)
           {
-            Data.reset();
+            delete Data; //We know that Refs == 0 now.
+
+            Data = NULL;
             Zero = true;
           }
        }
@@ -257,11 +273,15 @@ namespace BigInt
       if (&src == this) return;
       if (!Zero) //then make us zero
        {
-         Data.reset();
+         Data->Refs--;
+         if (Data->Refs == 0) delete Data;
+
+         Data = NULL;
          Zero = true;
        }
       if (src.isZero()) return;
       Data = src.Data;
+      src.Data->Refs++;
       Zero = false;
     }
 
@@ -281,9 +301,10 @@ namespace BigInt
       NEXT_TYPE temp;
       long i;
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
       for (i = 0; i < rhs.Data->Length; i++)
@@ -307,7 +328,9 @@ namespace BigInt
 
          if (i == -1) //Are we Zero?
           {
-            Data.reset();
+            delete Data;
+
+            Data = NULL;
             Zero = true;
           }
        }
@@ -319,14 +342,16 @@ namespace BigInt
       if (Zero) //Simple case 2: something is being added to zero
        {
          Data = rhs.Data;
+         Data->Refs++;
          Zero = false;
          return;
        }
 
-      Unit * newData = nullptr, carry = 0;
+      Unit * newData = NULL, carry = 0;
       NEXT_TYPE temp;
       long i;
-      std::shared_ptr<BitHolder> Rhs;
+      BitHolder * tmp = NULL, * Rhs = NULL;
+      bool freeRhs = false;
 
       Rhs = rhs.Data;
 
@@ -337,12 +362,19 @@ namespace BigInt
        */
       if (Data->Length < Rhs->Length)
        {
-         Data.swap(Rhs);
+         tmp = Data;
+         Data = Rhs;
+         Rhs = tmp;
+         tmp = NULL;
+
+         freeRhs = true;
+         Data->Refs++;
        }
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data, 1);
+         Data->Refs--;
+         Data = new BitHolder (*Data, 1);
        }
 
       for (i = 0; i < Rhs->Length; i++)
@@ -365,10 +397,11 @@ namespace BigInt
           {
             newData = new Unit [Data->Length + 1];
 
-            std::memcpy(newData, Data->Data.get(), Data->Length * sizeof(Unit));
+            std::memcpy(newData, Data->Data, Data->Length * sizeof(Unit));
 
-            Data->Data.reset(newData);
-            newData = nullptr;
+            delete [] Data->Data;
+            Data->Data = newData;
+            newData = NULL;
 
             Data->Size++;
           }
@@ -377,7 +410,12 @@ namespace BigInt
          Data->Length++;
        }
 
-      Rhs.reset();
+      if (freeRhs)
+       {
+         Rhs->Refs--;
+         if (Rhs->Refs == 0) delete Rhs;
+       }
+      Rhs = NULL;
     }
 
    void BitField::operator &= (const BitField & rhs)
@@ -385,13 +423,17 @@ namespace BigInt
       if (Zero) return; //Simple case 1: 0 & x = 0
       if (rhs.isZero()) //Simple case 2: x & 0 = 0
        {
-         Data.reset();
+         Data->Refs--;
+         if (Data->Refs == 0) delete Data;
+
+         Data = NULL;
          Zero = true;
          return;
        }
 
       long i;
-      std::shared_ptr<BitHolder> Rhs;
+      BitHolder * tmp = NULL, * Rhs = NULL;
+      bool freeRhs = false;
 
       Rhs = rhs.Data;
 
@@ -399,14 +441,21 @@ namespace BigInt
          We AND the larger number to the smaller (saving space),
          unless we own our Data.
        */
-      if ((Data.use_count() != 1) && (Data->Length > Rhs->Length))
+      if ((Data->Refs != 1) && (Data->Length > Rhs->Length))
        {
-         Data.swap(Rhs);
+         tmp = Data;
+         Data = Rhs;
+         Rhs = tmp;
+         tmp = NULL;
+
+         freeRhs = true;
+         Data->Refs++;
        }
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
       if (Data->Length > Rhs->Length)
@@ -427,12 +476,19 @@ namespace BigInt
 
          if (i == -1) //Are we Zero?
           {
-            Data.reset();
+            delete Data;
+
+            Data = NULL;
             Zero = true;
           }
        }
 
-      Rhs.reset();
+      if (freeRhs)
+       {
+         Rhs->Refs--;
+         if (Rhs->Refs == 0) delete Rhs;
+       }
+      Rhs = NULL;
     }
 
    void BitField::operator |= (const BitField & rhs)
@@ -441,12 +497,14 @@ namespace BigInt
       if (Zero) //Simple case 2: 0 | x = x
        {
          Data = rhs.Data;
+         Data->Refs++;
          Zero = false;
          return;
        }
 
       long i;
-      std::shared_ptr<BitHolder> Rhs;
+      BitHolder * tmp = NULL, * Rhs = NULL;
+      bool freeRhs = false;
 
       Rhs = rhs.Data;
 
@@ -455,12 +513,19 @@ namespace BigInt
        */
       if (Data->Length < Rhs->Length)
        {
-         Data.swap(Rhs);
+         tmp = Data;
+         Data = Rhs;
+         Rhs = tmp;
+         tmp = NULL;
+
+         freeRhs = true;
+         Data->Refs++;
        }
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
       for (i = 0; i < Rhs->Length; i++)
@@ -469,7 +534,12 @@ namespace BigInt
        /*
          OR neither cancels, nor increases a number's size.
        */
-      Rhs.reset();
+      if (freeRhs)
+       {
+         Rhs->Refs--;
+         if (Rhs->Refs == 0) delete Rhs;
+       }
+      Rhs = NULL;
     }
 
    void BitField::operator ^= (const BitField & rhs)
@@ -478,12 +548,14 @@ namespace BigInt
       if (Zero) //Simple case 2: 0 ^ x = x
        {
          Data = rhs.Data;
+         Data->Refs++;
          Zero = false;
          return;
        }
 
       long i;
-      std::shared_ptr<BitHolder> Rhs;
+      BitHolder * tmp = NULL, * Rhs = NULL;
+      bool freeRhs = false;
 
       Rhs = rhs.Data;
 
@@ -492,12 +564,19 @@ namespace BigInt
        */
       if (Data->Length < Rhs->Length)
        {
-         Data.swap(Rhs);
+         tmp = Data;
+         Data = Rhs;
+         Rhs = tmp;
+         tmp = NULL;
+
+         freeRhs = true;
+         Data->Refs++;
        }
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
       for (i = 0; i < Rhs->Length; i++)
@@ -514,12 +593,19 @@ namespace BigInt
 
          if (i == -1) //Are we Zero?
           {
-            Data.reset();
+            delete Data;
+
+            Data = NULL;
             Zero = true;
           }
        }
 
-      Rhs.reset();
+      if (freeRhs)
+       {
+         Rhs->Refs--;
+         if (Rhs->Refs == 0) delete Rhs;
+       }
+      Rhs = NULL;
     }
 
 
@@ -531,9 +617,10 @@ namespace BigInt
       NEXT_TYPE temp;
       long i;
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
       for (i = 0; (i < Data->Length) && (carry != 0); i++)
@@ -550,7 +637,9 @@ namespace BigInt
 
          if (i == -1) //Are we Zero?
           {
-            Data.reset();
+            delete Data;
+
+            Data = NULL;
             Zero = true;
           }
        }
@@ -560,25 +649,27 @@ namespace BigInt
     {
       if (carry == 0) return;
 
-      Unit * newData = nullptr;
+      Unit * newData = NULL;
       NEXT_TYPE temp;
       long i;
 
       if (Zero)
        {
          Zero = false;
-         Data = std::make_shared<BitHolder>();
+         Data = new BitHolder;
 
-         Data->Data.reset(new Unit [1]);
+         Data->Data = new Unit [1];
          Data->Length = 1;
          Data->Size = 1;
+         Data->Refs = 1;
 
          Data->Data[0] = carry;
          return;
        }
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data, 1);
+         Data->Refs--;
+         Data = new BitHolder (*Data, 1);
        }
 
       for (i = 0; (i < Data->Length) && (carry != 0); i++)
@@ -594,10 +685,11 @@ namespace BigInt
           {
             newData = new Unit [Data->Length + 1];
 
-            std::memcpy(newData, Data->Data.get(), Data->Length * sizeof(Unit));
+            std::memcpy(newData, Data->Data, Data->Length * sizeof(Unit));
 
-            Data->Data.reset(newData);
-            newData = nullptr;
+            delete [] Data->Data;
+            Data->Data = newData;
+            newData = NULL;
 
             Data->Size++;
           }
@@ -619,17 +711,21 @@ namespace BigInt
        {
          if (!Zero)
           {
-            Data.reset();
+            Data->Refs--;
+            if (Data->Refs == 0) delete Data;
+
+            Data = NULL;
             Zero = true;
           }
          return;
        }
 
-      Unit carry = 0, temp, * newData = nullptr;
+      Unit carry = 0, temp, * newData = NULL;
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data, 1);
+         Data->Refs--;
+         Data = new BitHolder (*Data, 1);
        }
 
       for (long i = 0; i < Data->Length; i++)
@@ -647,10 +743,11 @@ namespace BigInt
           {
             newData = new Unit [Data->Length + 1];
 
-            std::memcpy(newData, Data->Data.get(), Data->Length * sizeof(Unit));
+            std::memcpy(newData, Data->Data, Data->Length * sizeof(Unit));
 
-            Data->Data.reset(newData);
-            newData = nullptr;
+            delete [] Data->Data;
+            Data->Data = newData;
+            newData = NULL;
 
             Data->Size++;
           }
@@ -672,9 +769,10 @@ namespace BigInt
 
       Unit rem = 0, temp;
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
       for (long i = Data->Length - 1; i >= 0; i--)
@@ -691,7 +789,9 @@ namespace BigInt
          Data->Length--;
          if (Data->Length == 0)
           {
-            Data.reset();
+            delete Data;
+
+            Data = NULL;
             Zero = true;
           }
        }
@@ -841,9 +941,10 @@ namespace BigInt
       long i;
       Unit mask;
 
-      if (Data.use_count() != 1)
+      if (Data->Refs != 1)
        {
-         Data = std::make_shared<BitHolder>(*Data);
+         Data->Refs--;
+         Data = new BitHolder (*Data);
        }
 
        /*
@@ -867,7 +968,9 @@ namespace BigInt
 
          if (i == -1) //Are we Zero?
           {
-            Data.reset();
+            delete Data;
+
+            Data = NULL;
             Zero = true;
           }
        }

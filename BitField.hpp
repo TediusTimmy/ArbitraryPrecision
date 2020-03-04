@@ -51,8 +51,6 @@ SUCH DAMAGE.
 #ifndef BITFIELD_HPP
 #define BITFIELD_HPP
 
-#include <memory>
-
 namespace BigInt
  {
 
@@ -65,17 +63,18 @@ namespace BigInt
          class BitHolder
           {
             public:
-               std::unique_ptr<Unit[]> Data;
+               Unit * Data;
                long Length;
 
                long Size;
+               mutable long Refs;
 
                BitHolder ();
                BitHolder (const BitHolder &, long extra = 0);
                ~BitHolder ();
           };
 
-         std::shared_ptr<BitHolder> Data;
+         BitHolder * Data;
          bool Zero;
 
       public:

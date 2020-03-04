@@ -71,7 +71,6 @@ namespace BigInt
 
    Integer::~Integer ()
     {
-      Digits.~BitField();
       Sign = false;
     }
 
@@ -587,7 +586,7 @@ namespace BigInt
        }
       else Sign = false;
 
-      Digits.~BitField();
+      Digits = BitField();
 
        /*
          This digit packing algorithm should save alot of time for big
@@ -803,7 +802,7 @@ namespace BigInt
          139578 - 137982 = 1596
          Quotient = 6978 (69|78) Remainder = 1596
        */
-      q.Digits.~BitField();
+      q.Digits = BitField();
 
        //we normalize dr so that it's msb is bit 31
       shift = BitField::bits - dr.Digits.msb() % BitField::bits - 1;
