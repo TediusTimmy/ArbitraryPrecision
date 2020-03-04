@@ -14,3 +14,5 @@ Programs included:
 * Example - Another crappy language interpreter.
 * FENZero4Float - A tool for finding the zeros of a one-dimensional functions. No, it doesn't use Newton's method (I've never successfully written code to do differentiation), so it is MUCH slower, but can find zeros that Newton's method cannot.
 * IntCalc - An integer calculator that is only notable in that it implements Dijkstra's Shunting-Yard Algorithm, an algorithm I will never again implement because I understand recursive descent parsers now.
+
+NOTE (3 Mar 2020) : The Integer code has failed to run on GCC for a while now (except with -O0), and I finally fixed it. The problem was that younger me decided that it was safe to call the destructor of an object as any other function. I was treating the destructor of BitField as a "clear" function. GCCs lifetime-dse optimization considers the object invalid after the destructor runs, and was optimizing out the NULL pointer stores. That is now fixed (by me not calling the destructor).
