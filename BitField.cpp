@@ -898,7 +898,7 @@ namespace BigInt
       if (Zero) return 0;
 
       Unit approx;
-      unsigned NEXT_TYPE lhs, rhs;
+      unsigned NEXT_TYPE lhs, rhs, temp;
 
        /*
          Handle the need for a leading zero.
@@ -908,14 +908,16 @@ namespace BigInt
       if (shortGuess)
        {
          approx = Data->Data[Data->Length - 1] / divisor;
+         temp = approx;
 
          rhs = (((unsigned NEXT_TYPE)Data->Data[Data->Length - 1] %
             divisor) << bits) | Data->Data[Data->Length - 2];
        }
       else
        {
-         approx = (Unit)((((unsigned NEXT_TYPE)Data->Data[Data->Length - 1] <<
-            bits) | Data->Data[Data->Length - 2]) / divisor);
+         temp = (((unsigned NEXT_TYPE)Data->Data[Data->Length - 1] << bits) |
+            Data->Data[Data->Length - 2]) / divisor;
+         approx = (Unit)temp;
 
          rhs = (((((unsigned NEXT_TYPE)Data->Data[Data->Length - 1] << bits) |
             Data->Data[Data->Length - 2]) % divisor) << bits) |
@@ -924,7 +926,8 @@ namespace BigInt
 
       lhs = (unsigned NEXT_TYPE)approx * sec;
 
-      if (lhs > rhs) approx--;
+      if (approx != temp) approx = ((Unit)-1);
+      else if (lhs > rhs) approx--;
 
       return approx;
     }
