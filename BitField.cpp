@@ -85,7 +85,7 @@ namespace BigInt
          Alot of finalization is added before deallocation in case we need
          to hunt down bugs.
        */
-      if (Data != NULL) delete Data;
+      if (Data != NULL) delete [] Data;
 
       Data = NULL;
       Length = 0;
