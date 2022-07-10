@@ -18,4 +18,4 @@ Programs included:
 NOTE (3 Mar 2020) : The Integer code has failed to run on GCC for a while now (except with -O0), and I finally fixed it. The problem was that younger me decided that it was safe to call the destructor of an object as any other function. I was treating the destructor of BitField as a "clear" function. GCCs lifetime-dse optimization considers the object invalid after the destructor runs, and was optimizing out the NULL pointer stores. That is now fixed (by me not calling the destructor).  
 After far more research than I should have done... The change to GCC that breaks my code was commit February 2015 (five years ago!) and appeared in GCC 4.9.3.
 
-NOTE (3 Jul 2022) : I fixed an obscure bug in the division code that would sometimes result in a horribly wrong answer.
+NOTE (3 Jul 2022) : I fixed an obscure bug in the division code that would sometimes result in a horribly wrong answer. It would help if I had actually read the chapter on doing the math before trying to implement it. Also, AddressSanitizer found a mismatched new [] / delete bug.
