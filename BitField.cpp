@@ -59,10 +59,10 @@ namespace BigInt
     */
 
 
-   const int BitField::bits = 32;
-   const static Unit mask = (Unit) /*(1 << BitField::bits)*/ - 1;
+   const int BitField::bits = 64;
+   const static Unit mask = (Unit) /*(((Unit)1) << BitField::bits)*/ - 1;
 
-   #define NEXT_TYPE long long
+   #define NEXT_TYPE __int128__
 
 
 
@@ -867,7 +867,7 @@ namespace BigInt
 
       long result = Data->Length * bits - 1;
 
-      for (Unit i = (1 << (bits - 1));
+      for (Unit i = (((Unit)1) << (bits - 1));
            !(Data->Data[Data->Length - 1] & i);
            i >>= 1, result--) ;
 

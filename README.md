@@ -19,3 +19,5 @@ NOTE (3 Mar 2020) : The Integer code has failed to run on GCC for a while now (e
 After far more research than I should have done... The change to GCC that breaks my code was commit February 2015 (five years ago!) and appeared in GCC 4.9.3.
 
 NOTE (3 Jul 2022) : I fixed an obscure bug in the division code that would sometimes result in a horribly wrong answer. It would help if I had actually read the chapter on doing the math before trying to implement it. Also, AddressSanitizer found a mismatched new [] / delete bug.
+
+NOTE (2 Aug 2022) : I updated the code to have a 64 bit Unit type. It probably won't compile on MS compilers now.

@@ -51,10 +51,12 @@ SUCH DAMAGE.
 #ifndef BITFIELD_HPP
 #define BITFIELD_HPP
 
+#include <cstdint>
+
 namespace BigInt
  {
 
-   typedef unsigned int Unit;
+   typedef uint64_t Unit;
 
    class BitField
     {

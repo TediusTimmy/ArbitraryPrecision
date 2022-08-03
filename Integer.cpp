@@ -36,7 +36,7 @@ namespace BigInt
 
     /*
       The assumption throughout all of this Integer code is based on a
-      unsigned 32 bit Unit. We also assume here a 64 bit long long.
+      unsigned 64 bit Unit. We also assume here a 64 bit long long.
 
       Note: this DOES work for a two's complement LLONG_MIN.
     */
@@ -48,8 +48,6 @@ namespace BigInt
          input = -input;
        }
 
-      Digits += (Unit) ((unsigned long long) input >> BitField::bits);
-      Digits <<= BitField::bits;
       Digits += (Unit) input;
     }
 
@@ -91,7 +89,7 @@ namespace BigInt
    long Integer::toInt (void) const //It works for its purpose.
     {
       if (Digits.length() > 1) return 0;
-      return Sign ? -((long)Digits.getDigit(0)) : Digits.getDigit(0);
+      return Sign ? -((long)Digits.getDigit(0)) : (long)Digits.getDigit(0);
     }
 
 
@@ -534,14 +532,14 @@ namespace BigInt
 
 
     /*
-      This is floor(32 * log(2) / log(index + 2)). [31 for powers of 2]
+      This is floor(64 * log(2) / log(index + 2)). [63 for powers of 2]
       It will be used in toString and fromString to unpack and pack the
       BigInt "faster".
     */
    static signed char maxdigits [35] =
     {
-      31, 20, 15, 13, 12, 11, 10, 10, 9, 9, 8, 8, 8, 8, 7, 7, 7,
-      7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+      63, 40, 31, 27, 24, 22, 21, 20, 19, 18, 17, 17, 16, 16, 15, 15, 15,
+      15, 14, 14, 14, 14, 13, 13, 13, 13, 13, 13, 13, 12, 12, 12, 12, 12, 12
     };
     /*
       These are the powers that correspond to these numbers of digits.
@@ -549,13 +547,13 @@ namespace BigInt
     */
    static Unit powers [35] =
     {
-      2147483648U, 3486784401U, 1073741824U, 1220703125U, 2176782336U,
-      1977326743U, 1073741824U, 3486784401U, 1000000000U, 2357947691U,
-       429981696U,  815730721U, 1475789056U, 2562890625U,  268435456U,
-       410338673U,  612220032U,  893871739U, 1280000000U, 1801088541U,
-      2494357888U, 3404825447U,  191102976U,  244140625U,  308915776U,
-       387420489U,  481890304U,  594823321U,  729000000U,  887503681U,
-      1073741824U, 1291467969U, 1544804416U, 1838265625U, 2176782336U
+      9223372036854775808ULL, 12157665459056928801ULL,  4611686018427387904ULL,  7450580596923828125ULL, 4738381338321616896ULL,
+      3909821048582988049ULL,  9223372036854775808ULL, 12157665459056928801ULL, 10000000000000000000ULL, 5559917313492231481ULL,
+      2218611106740436992ULL,  8650415919381337933ULL,  2177953337809371136ULL,  6568408355712890625ULL, 1152921504606846976ULL,
+      2862423051509815793ULL,  6746640616477458432ULL, 15181127029874798299ULL,  1638400000000000000ULL, 3243919932521508681ULL,
+      6221821273427820544ULL, 11592836324538749809ULL,   876488338465357824ULL,  1490116119384765625ULL, 2481152873203736576ULL,
+      4052555153018976267ULL,  6502111422497947648ULL, 10260628712958602189ULL, 15943230000000000000ULL,  787662783788549761ULL,
+      1152921504606846976ULL,  1667889514952984961ULL,  2386420683693101056ULL,  3379220508056640625ULL, 4738381338321616896ULL
     };
 
 
@@ -887,7 +885,7 @@ namespace BigInt
       for (long i = 0; /* I moved this down. */ ; i++)
        {
          if (rhs.Digits.getDigit(i / BitField::bits)
-              & (1 << (i % BitField::bits))) result *= temp;
+              & (((Unit)1) << (i % BitField::bits))) result *= temp;
 
           /*
             We should get a speed boost putting this test here,
@@ -1068,7 +1066,7 @@ namespace BigInt
       for (long i = temp.msb(); /* I moved this down. */ ; --i)
        {
          if (temp.getDigit(i / BitField::bits)
-              & (1 << (i % BitField::bits))) fibMult(result, one);
+              & (((Unit)1) << (i % BitField::bits))) fibMult(result, one);
 
           /*
             We should get a speed boost putting this test here,
@@ -1187,7 +1185,7 @@ namespace BigInt
 
       for (long i = 0; /* This is in the middle of the loop. */ ; i++)
        {
-         if (nexp.getDigit(i / BitField::bits) & (1 << (i % BitField::bits)))
+         if (nexp.getDigit(i / BitField::bits) & (((Unit)1) << (i % BitField::bits)))
             result = mod(result * temp, Mod);
 
          if (i == nexp.msb()) break;
