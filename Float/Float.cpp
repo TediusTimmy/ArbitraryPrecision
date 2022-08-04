@@ -102,7 +102,7 @@ namespace BigInt
          else if (lhs.isInfinity()) return !lhs.isSigned();
          else return !rhs.isSigned();
        }
-      if (lhs.isZero() && rhs.isZero()) return false;
+      if (lhs.isZero() && rhs.isZero()) return true;
       return lhs.compare(rhs) >= 0;
     }
 
@@ -120,7 +120,7 @@ namespace BigInt
          else if (lhs.isInfinity()) return lhs.isSigned();
          else return rhs.isSigned();
        }
-      if (lhs.isZero() && rhs.isZero()) return false;
+      if (lhs.isZero() && rhs.isZero()) return true;
       return lhs.compare(rhs) <= 0;
     }
 
@@ -208,8 +208,8 @@ namespace BigInt
          if (Exponent > to.Exponent) return -1;
          else return 1;
        }
-      else if (!Sign && to.Sign) return -1;
-      else if (Sign && !to.Sign) return 1;
+      else if (!Sign && to.Sign) return 1;
+      else if (Sign && !to.Sign) return -1;
       else
        {
          if (Exponent > to.Exponent) return 1;
