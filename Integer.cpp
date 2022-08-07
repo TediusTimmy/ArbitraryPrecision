@@ -335,6 +335,9 @@ namespace BigInt
       This is the standard O(n^2) algorithm for multiplication.
       Karatsuba multiplication is poorly implemented.
     */
+#ifndef K_CUT
+ #define K_CUT 56
+#endif
    Integer operator * (const Integer & lhs, const Integer & rhs)
     {
       Integer result;
@@ -363,7 +366,7 @@ namespace BigInt
        }
 
        // Check for doing Karatsuba multiplication
-      if ((rhs.Digits.length() < 64) || (lhs.Digits.length() < 64))
+      if ((rhs.Digits.length() < K_CUT) || (lhs.Digits.length() < K_CUT))
        {
           //Do long multiplication.
          if (rhs.Digits.length() >= lhs.Digits.length())
@@ -391,13 +394,14 @@ namespace BigInt
        {
          const long cutoff = ((rhs.Digits.length() >= lhs.Digits.length()) ? rhs.Digits.length() : lhs.Digits.length()) / 2;
          Integer shift = Integer(((Unit)cutoff * BitField::bits));
+         Integer shift2 = Integer(((Unit)2 * cutoff * BitField::bits));
          Integer A, B, C, D, Z0, Z2;
          lhs.Digits.split(A.Digits, B.Digits, cutoff);
          rhs.Digits.split(C.Digits, D.Digits, cutoff);
 
          Z2 = A * C;
          Z0 = B * D;
-         result = ((Z2 << shift) << shift) + (((A + B) * (C + D) - Z2 - Z0) << shift) + Z0;
+         result = (Z2 << shift2) + (((A + B) * (C + D) - Z2 - Z0) << shift) + Z0;
          result.Sign = (lhs.isSigned() != rhs.isSigned());
        }
 

@@ -1002,14 +1002,14 @@ namespace BigInt
        }
 
       if (Zero) return; // Do nothing more. This is probably an error.
-      if (Data->Length < at)
+      if (Data->Length <= at)
        {
          low = *this;
          return;
        }
 
       bool zero = true;
-      for (long i = 0; i < at; ++i)
+      for (long i = 0; (i < at) && (zero == true); ++i)
        {
          if (Data->Data[i] != 0) zero = false;
        }
@@ -1023,31 +1023,19 @@ namespace BigInt
          low.Data->Size = at;
          low.Data->Refs = 1;
 
-         for (long i = 0; i < at; ++i)
-          {
-            low.Data->Data[i] = Data->Data[i];
-          }
+         std::memcpy(low.Data->Data, Data->Data, at * sizeof(Unit));
+         while (low.Data->Data[low.Data->Length - 1] == 0) low.Data->Length--;
        }
-      zero = true;
-      for (long i = at; i < Data->Length; ++i)
-       {
-         if (Data->Data[i] != 0) zero = false;
-       }
-      if (!zero)
-       {
-         high.Zero = false;
-         high.Data = new BitHolder;
 
-         high.Data->Data = new Unit [Data->Length - at];
-         high.Data->Length = Data->Length - at;
-         high.Data->Size = Data->Length - at;
-         high.Data->Refs = 1;
+      high.Zero = false;
+      high.Data = new BitHolder;
 
-         for (long i = at; i < Data->Length; ++i)
-          {
-            high.Data->Data[i - at] = Data->Data[i];
-          }
-       }
+      high.Data->Data = new Unit [Data->Length - at];
+      high.Data->Length = Data->Length - at;
+      high.Data->Size = Data->Length - at;
+      high.Data->Refs = 1;
+
+      std::memcpy(high.Data->Data, Data->Data + at, (Data->Length - at) * sizeof(Unit));
     }
 
 
