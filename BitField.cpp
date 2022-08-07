@@ -981,4 +981,75 @@ namespace BigInt
 
 
 
+    /*
+      Split the current BitField into two pieces.
+    */
+   void BitField::split (BitField & high, BitField & low, long at) const
+    {
+      if (!high.Zero) // Put the destinations into a known state.
+       {
+         high.Data->Refs--;
+         if (high.Data->Refs == 0) delete high.Data;
+         high.Data = NULL;
+         high.Zero = true;
+       }
+      if (!low.Zero)
+       {
+         low.Data->Refs--;
+         if (low.Data->Refs == 0) delete low.Data;
+         low.Data = NULL;
+         low.Zero = true;
+       }
+
+      if (Zero) return; // Do nothing more. This is probably an error.
+      if (Data->Length < at)
+       {
+         low = *this;
+         return;
+       }
+
+      bool zero = true;
+      for (long i = 0; i < at; ++i)
+       {
+         if (Data->Data[i] != 0) zero = false;
+       }
+      if (!zero)
+       {
+         low.Zero = false;
+         low.Data = new BitHolder;
+
+         low.Data->Data = new Unit [at];
+         low.Data->Length = at;
+         low.Data->Size = at;
+         low.Data->Refs = 1;
+
+         for (long i = 0; i < at; ++i)
+          {
+            low.Data->Data[i] = Data->Data[i];
+          }
+       }
+      zero = true;
+      for (long i = at; i < Data->Length; ++i)
+       {
+         if (Data->Data[i] != 0) zero = false;
+       }
+      if (!zero)
+       {
+         high.Zero = false;
+         high.Data = new BitHolder;
+
+         high.Data->Data = new Unit [Data->Length - at];
+         high.Data->Length = Data->Length - at;
+         high.Data->Size = Data->Length - at;
+         high.Data->Refs = 1;
+
+         for (long i = at; i < Data->Length; ++i)
+          {
+            high.Data->Data[i - at] = Data->Data[i];
+          }
+       }
+    }
+
+
+
  } /* namespace BigInt */

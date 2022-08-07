@@ -127,6 +127,8 @@ namespace BigInt
 
          int compare (const BitField &) const;
 
+         void split (BitField &, BitField &, long) const;
+
          const static int bits;
 
     }; /* class BitField */

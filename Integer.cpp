@@ -333,7 +333,7 @@ namespace BigInt
 
     /*
       This is the standard O(n^2) algorithm for multiplication.
-      Karatsuba multiplication is not implemented, nor anything faster.
+      Karatsuba multiplication is poorly implemented.
     */
    Integer operator * (const Integer & lhs, const Integer & rhs)
     {
@@ -362,26 +362,43 @@ namespace BigInt
          return result;
        }
 
-       //Do long multiplication.
-      if (rhs.Digits.length() >= lhs.Digits.length())
-       { //iterate over lhs, as it is smaller
-         for (i = 0; i < lhs.Digits.length(); i++)
-          {
-            temp = rhs.Digits;
-            temp *= lhs.Digits.getDigit(i); //We should save time by putting
-            temp <<= i * BitField::bits; //the multiply before the shift.
-            result.Digits += temp;
+       // Check for doing Karatsuba multiplication
+      if ((rhs.Digits.length() < 64) || (lhs.Digits.length() < 64))
+       {
+          //Do long multiplication.
+         if (rhs.Digits.length() >= lhs.Digits.length())
+          { //iterate over lhs, as it is smaller
+            for (i = 0; i < lhs.Digits.length(); i++)
+             {
+               temp = rhs.Digits;
+               temp *= lhs.Digits.getDigit(i); //We should save time by putting
+               temp <<= i * BitField::bits; //the multiply before the shift.
+               result.Digits += temp;
+             }
+          }
+         else
+          { //iterate over rhs, as it is smaller
+            for (i = 0; i < rhs.Digits.length(); i++)
+             {
+               temp = lhs.Digits;
+               temp *= rhs.Digits.getDigit(i);
+               temp <<= i * BitField::bits;
+               result.Digits += temp;
+             }
           }
        }
       else
-       { //iterate over rhs, as it is smaller
-         for (i = 0; i < rhs.Digits.length(); i++)
-          {
-            temp = lhs.Digits;
-            temp *= rhs.Digits.getDigit(i);
-            temp <<= i * BitField::bits;
-            result.Digits += temp;
-          }
+       {
+         const long cutoff = ((rhs.Digits.length() >= lhs.Digits.length()) ? rhs.Digits.length() : lhs.Digits.length()) / 2;
+         Integer shift = Integer(((Unit)cutoff * BitField::bits));
+         Integer A, B, C, D, Z0, Z2;
+         lhs.Digits.split(A.Digits, B.Digits, cutoff);
+         rhs.Digits.split(C.Digits, D.Digits, cutoff);
+
+         Z2 = A * C;
+         Z0 = B * D;
+         result = ((Z2 << shift) << shift) + (((A + B) * (C + D) - Z2 - Z0) << shift) + Z0;
+         result.Sign = (lhs.isSigned() != rhs.isSigned());
        }
 
       return result;
